@@ -15,4 +15,4 @@ available at this public repository (https://github.com/xpliant/openxps).
 Please see ./docs directory for any and all applicable documentation.
 
 #Wiki
-Please see https://github.com/zubinshah/OpenXPS/wiki
+Please see https://github.com/XPliant/OpenXPS/wiki/OpenXPS-Wiki
