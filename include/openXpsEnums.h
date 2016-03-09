@@ -549,6 +549,57 @@ typedef enum XP_ACM_CONFIG_MODE
 }XP_ACM_CONFIG_MODE;
 
 /**
+ * \brief This type (enum) defines the Advanced Counting Module (ACM) clients
+ */
+typedef enum xpAcmClient_e
+{
+    XP_ACM_UNKNOWN,
+    /* Openflow ACM clients */
+    XP_ACM_OPENFLOW_0,
+    XP_ACM_OPENFLOW_1,
+    XP_ACM_OPENFLOW_2,
+    XP_ACM_OPENFLOW_3,
+    XP_ACM_OPENFLOW_4,
+    XP_ACM_OPENFLOW_5,
+    XP_ACM_OPENFLOW_6,
+    XP_ACM_OPENFLOW_7,
+    XP_ACM_OPENFLOW_8,
+    XP_ACM_OPENFLOW_9,
+    XP_ACM_OPENFLOW_10,
+    XP_ACM_OPENFLOW_11,
+    XP_ACM_OPENFLOW_12,
+    XP_ACM_OPENFLOW_13,
+    XP_ACM_OPENFLOW_14,
+    XP_ACM_OPENFLOW_15,
+    XP_ACM_OPENFLOW_16,
+    XP_ACM_OPENFLOW_17,
+    XP_ACM_OPENFLOW_18,
+    XP_ACM_OPENFLOW_19,
+    XP_ACM_OPENFLOW_20,
+    XP_ACM_OPENFLOW_21,
+    XP_ACM_OPENFLOW_22,
+    XP_ACM_OPENFLOW_23,
+    XP_ACM_OPENFLOW_MAX     = 31,
+    /* Default profile ACM clients */
+    XP_ACM_ING_PORT_POLICER = 0x20,
+    XP_ACM_ING_PORT_SAMPLER = 0x40,
+    XP_ACM_VNI_COUNTER      = 0x80,
+    XP_ACM_ING_BD_COUNTER   = 0x100,
+    XP_ACM_VLAN_BUM_POLICER = 0x200,
+    XP_ACM_IACL_POLICER     = 0x400,
+    XP_ACM_IPACL_COUNTER    = 0x800,
+    XP_ACM_IBACL_COUNTER    = 0x1000,
+    XP_ACM_IRACL_COUNTER    = 0x2000,
+    XP_ACM_EACL_POLICER     = 0x4000,
+    XP_ACM_EACL_COUNTER     = 0x8000,
+    XP_ACM_EGR_BD_COUNTER   = 0x10000,
+    XP_ACM_DROP_RSN_COUNTER = 0x20000,
+    XP_ACM_PORT_RANGE       = 0x40000,
+    XP_ACM_PORT_VLAN        = 0x80000,
+    XP_ACM_TUNNEL_COUNTER   = 0x100000,
+}xpAcmClient_e;
+
+/**
  * \brief This type (enum) defines the interface upon which Packet Driver operation is performed
  */
 typedef enum xpPacketInterface
@@ -916,6 +967,10 @@ typedef enum xpEventType xpsEventType_e;
  */
 typedef  XP_ACM_CONFIG_MODE xpsAcmConfigMode_e;
 
+/**
+ * \brief This type (enum) defines the Advanced Counting Module (ACM) clients
+ */
+typedef  xpAcmClient_e xpsAcmClient_e;
 
 /**
  * \brief This type (enum) defines the Driver Access Layer (DAL) types
