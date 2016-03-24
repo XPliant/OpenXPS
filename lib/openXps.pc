@@ -1,0 +1,11 @@
+# Copyright (C) 2016, Cavium, Inc. All Rights Reserved.
+
+prefix=/usr
+exec_prefix=${prefix}
+includedir=${prefix}/include
+
+Name: Cavium Open XPS
+Description: Cavium Open XPS
+Version: 3.2
+Libs: -lOpenXps
+Cflags: -I${includedir}/openXps
