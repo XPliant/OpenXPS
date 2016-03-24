@@ -43,10 +43,11 @@ extern "C" {
  * @param [in] target - Target name (svb, crb1, crb2, ...)
  * @param [in] initType - possible init modes (if mode is not available use INIT_UNKNOWN)
  * @param [in] diagMode
- * @param [in] programName - Name of the binary which is launched
+ * @param [in] targetPlatformPath - Directory containing platform file
+ *             The platform configuration file shall be placed under “targetPlatformPath/target/target.cfg”
  * @return [XP_STATUS] On success XP_NO_ERR
  */
-XP_STATUS xpPlatformInit(const char *target, xpInitType_t initType, bool diagMode, char *programName);
+XP_STATUS xpPlatformInit(const char *target, xpInitType_t initType, bool diagMode, char *targetPlatformPath);
 
 #ifdef __cplusplus
 }
