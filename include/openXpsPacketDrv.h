@@ -36,11 +36,11 @@ extern "C" {
 
 /**
  * \brief Function pointer for cpu packet rx processing
- * \param [in] xpDevice_t devId
- * \param [in] xpsPort_t portNum
- * \param [out] void * buf
- * \param [in] uint16_t bufSize
- * \param [in] void* userData
+ * \param [in] xpDevice_t devId Device Id. Valid values are 0-63
+ * \param [in] xphRxHdr * xphHdr 24 bytes of XPH Rx Header.
+ * \param [out] void * buf Buffer pointer where packet data is available.
+ * \param [in] uint16_t bufSize Size of the packet
+ * \param [in] void* userData User data passed to Rx handler callback
  *
  * \return XP_STATUS
  */
@@ -164,8 +164,124 @@ XP_STATUS xpsNlTxHeaderMsgAssign(xpsDevice_t devId, xpsInterfaceId_t xpsIfId, ui
 
 XP_STATUS xpsNlSockGetBuf(uint8_t** nlData, uint8_t** nlBuf);
 
+XP_STATUS xpsNlSockFreeBuf(uint8_t* nlBuf);
+
 XP_STATUS xpsNlSockSendMsg(uint8_t* nlBuf);
 
+/**
+ * \brief xpsNetdevKnetIdAllocate returns knetId
+ *  
+ * \param [in] devId: device Id. Valid values are 0-63 
+ * \param [out] knetId: knet identificator
+ *
+ * \return [XP_STATUS]
+ */
+XP_STATUS xpsNetdevKnetIdAllocate(xpsDevice_t devId, uint32_t *knetId);
+
+/**
+ * \brief xpsNetdevKnetIdAllocateWith returns specified knetId
+ *  
+ * \param [in] devId: device Id. Valid values are 0-63 
+ * \param [in] knetId: knet identificator
+ *
+ * \return [XP_STATUS]
+ */
+XP_STATUS xpsNetdevKnetIdAllocateWith(xpsDevice_t devId, uint32_t knetId);
+
+/**
+ * \brief xpsNetdevKnetIdFree frees knetId
+ *  
+ * \param [in] devId: device Id. Valid values are 0-63 
+ * \param [in] knetId: knet identificator
+ *
+ * \return [XP_STATUS]
+ */
+XP_STATUS xpsNetdevKnetIdFree(xpsDevice_t devId, uint32_t knetId);
+
+/**
+ * \brief xpsNetdevIfCreate creates a netdev interface
+ *  
+ * \param [in] devId: device Id. Valid values are 0-63 
+ * \param [in] knetId: knet identificator 
+ * \param [in] ifName: interface name
+ *
+ * \return [XP_STATUS]
+ */
+XP_STATUS xpsNetdevIfCreate(xpsDevice_t devId, uint32_t knetId, char *ifName);
+
+/**
+ * \brief xpsNetdevIfDelete deletes a netdev interface
+ *  
+ * \param [in] devId: device Id. Valid values are 0-63 
+ * \param [in] knetId: knet identificator 
+ *
+ * \return [XP_STATUS]
+ */
+XP_STATUS xpsNetdevIfDelete(xpsDevice_t devId, uint32_t knetId);
+
+/**
+ * \brief xpsNetdevIfLinkSet links/unlinks a netdev interface 
+ *                           with xp interface
+ *  
+ * \param [in] devId: device Id. Valid values are 0-63
+ * \param [in] knetId: knet identificator 
+ * \param [in] xpsIf: xps interface
+ * \param [in] flag: link/unlink
+ *
+ * \return [XP_STATUS]
+ */
+XP_STATUS xpsNetdevIfLinkSet(xpsDevice_t devId, uint32_t knetId, 
+                             xpsInterfaceId_t xpsIf, bool flag);
+
+/**
+ * \brief xpsNetdevIfTxHeaderSet sets XP TX header
+ *  
+ * \param [in] devId: device Id. Valid values are 0-63 
+ * \param [in] knetId: knet identificator 
+ * \param [in] xpsIf: xps interface
+ * \param [in] flag: set/unset
+ *
+ * \return [XP_STATUS]
+ */
+XP_STATUS xpsNetdevIfTxHeaderSet(xpsDevice_t devId, uint32_t knetId, 
+                                 xpsInterfaceId_t xpsIf, bool flag);
+
+/**
+ * \brief xpsNetdevTrapSet assign/unassign trap
+ *  
+ * \param [in] devId: device Id. Valid values are 0-63 
+ * \param [in] trapId: trap indentificator
+ * \param [in] rCode: reason code
+ * \param [in] ch: channel
+ * \param [in] fd: socket descriptor
+ * \param [in] flag: add/remove
+ *
+ * \return [XP_STATUS]
+ */
+XP_STATUS xpsNetdevTrapSet(xpsDevice_t devId, uint32_t trapId, uint32_t rCode, 
+                           uint32_t ch, uint32_t fd, bool flag);
+
+/**
+ * \brief xpsNetdevCbFdSet registers file descriptor in kernel 
+ *        module to recived packets
+ *  
+ * \param [in] devId: device Id. Valid values are 0-63
+ * \param [in] fd: call back channel FD 
+ * \param [in] flag: set/unset 
+ *
+ * \return [XP_STATUS]
+ */
+XP_STATUS xpsNetdevCbFdSet(xpsDevice_t devId, uint32_t fd, bool flag);
+
+/**
+ * \brief xpsNetdevMirrorSet enables mirroring to XDK
+ *  
+ * \param [in] devId: device Id. Valid values are 0-63
+ * \param [in] flag: enable/disable
+ *
+ * \return [XP_STATUS]
+ */
+XP_STATUS xpsNetdevMirrorSet(xpsDevice_t devId, bool flag);
 
 #ifdef __cplusplus
 }

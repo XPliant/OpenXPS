@@ -47,6 +47,7 @@ typedef enum
     RANGE_FULL_FEATURED = 0,
     RANGE_FULL_FEATURED_2,
     RANGE_ROUTE_CENTRIC,
+    RANGE_TUNNEL_CENTRIC,
     RANGE_PROFILE_MAX
 } xpsRangeProfileType_t;
 
@@ -129,6 +130,36 @@ XP_STATUS xpsSdkLogToFile(const char*);
  * \return STATUS
  */
 XP_STATUS xpsSdkLogVersion(void);
+
+/**
+ * \brief This API sets SDK logging options.
+ *
+ * This API initializes SDK's logging options.
+ *
+ * \param [in] it
+ * \param [in] * param
+ * \return STATUS
+ */
+XP_STATUS xpsSdkSetLoggerOptions(uint32_t id, char *param);
+
+/**
+ * \brief Initialize debug shell server.
+ *
+ * This API initializes debug shell server.
+ *
+ * \return STATUS
+ */
+XP_STATUS xpsShellInit(void);
+
+/**
+ * \brief De-initialize debug shell server.
+ *
+ * This API de-initializes debug shell server.
+ *
+ * \return STATUS
+ */
+XP_STATUS xpsShellDeInit(void);
+
 
 #ifdef __cplusplus
 }

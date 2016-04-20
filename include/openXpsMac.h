@@ -81,6 +81,18 @@ XP_STATUS xpsMacPortGroupDeInit(xpsDevice_t devId, uint8_t macNum);
 XP_STATUS xpsMacSwitchMacConfigMode(xpsDevice_t devId, uint8_t macNum, xpMacConfigMode newMode, xpFecMode fecMode, uint8_t enableFEC);
 
 /**
+ * \brief To get mac mode of port
+ *
+ * \param [in] devId device id. Valid values are 0-63
+ * \param [in] portNum Port number. Valid values are 0 to 127 and 176.
+ * \param [out] macConfigMode - mac mode
+ *
+ * \return XP_STATUS On success XP_NO_ERR
+ */
+XP_STATUS xpsMacConfigModeGet(xpDevice_t devId, uint8_t portNum, xpMacConfigMode *macConfigMode);
+
+
+/**
  * \brief Get MAC number mapping for a specific port number 
  *
  * \param [in] devId device Id. Valid values are 0-63
@@ -201,17 +213,6 @@ XP_STATUS xpsMacEventHandlerRegister(xpsDevice_t devId, uint8_t portNum, xpEvent
  * \return XP_STATUS
  */
 XP_STATUS xpsMacGetCounterStats(xpsDevice_t devId, uint8_t portNum, uint8_t fromStatNum, uint8_t toStatNum, xp_Statistics *stat);
-
-/**
- * \brief Get BPAN pause ability for a specific port
- *
- * \param [in] devId device Id. Valid values are 0-63
- * \param [in] portNum Port number. Valid values are 0 to 127.
- * \param [out] pauseAbility BPAN Pause Ability
- *
- * \return XP_STATUS
- */
-XP_STATUS xpsMacGetBpanRemotePauseAbility(xpsDevice_t devId, uint8_t portNum, uint8_t *pauseAbility);
 
 /**
  * \brief Get the link status for a specific port

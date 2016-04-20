@@ -193,92 +193,78 @@ typedef enum XP_STATUS_E
     XP_ERR_VALUE_OUT_OF_RANGE,      ///< 124 - Value out of Range
     XP_ERR_INVALID_SPEED,           ///< 125 - Invalid Speed
     XP_ERR_INVALID_SERDES_CHANNEL_NUM,              ///< 126 -Invalid SERDES Channel Number
-    XP_ERR_LINK_UP_HANDLER_NOT_REGISTERED,          ///< 127 - Link Up Handler not Registered
-    XP_ERR_LINK_DOWN_HANDLER_NOT_REGISTERED,        ///< 128 - Link Down Handler not Registered
-    XP_ERR_TX_BASE_PAGE_INT_HANDLER_NOT_REGISTERED, ///< 129 - Transmit Base Page Interrupt Handler not Registered
-    XP_ERR_TX_NEXT_PAGE_INT_HANDLER_NOT_REGISTERED, ///< 130 - Transmit Next Page Interrupt Handler not Registered
-    XP_ERR_RX_BASE_PAGE_INT_HANDLER_NOT_REGISTERED, ///< 131 - Receive Base Page Interrupt Handler not Registered
-    XP_ERR_RX_NEXT_PAGE_INT_HANDLER_NOT_REGISTERED, ///< 132 - Receive Next Page Interrupt Handler not Registered
+    XP_ERR_INTERRUPT_HANDLER_NOT_REGISTERED,          ///< 127 - Link Up Handler not Registered
+    XP_ERR_AN_SET_NOT_ALLOWED,      ///< 128 - AutoNegotiation Set Not Allowed
+    XP_ERR_AN_GET_NOT_ALLOWED,      ///< 129 - AutoNegotiation Get Not Allowed
+    XP_ERR_AN_RESTART_NOT_ALLOWED,  ///< 130 - AutoNegotiation Restart Not Allowed
+    XP_ERR_MDIO_STATUS_NOT_CLEAR,   ///< 131 - MDIO Status Not Clear
+    XP_ERR_INVALID_PCSMODE,         ///< 132 - Invalid PCS mode
+    XP_ERR_OP_NOT_SUPPORTED,        ///< 133 - Operation not Supported
+    XP_ERR_UNKNOWN_EVENT,           ///< 134 - Unknown Event Occured
+    XP_ERR_INIT_FAILED,             ///< 135 - Initialization Failure
+    XP_ERR_SERDES_INIT,             ///< 136 - SERDES Initialization Error
+    XP_ERR_SERDES_FW_NOT_INITED,    ///< 137 -
+    XP_ERR_INVALID_MAX_ENTRIES,     ///< 138 -
+    XP_ERR_INVALID_LANE_NUM,        ///< 139 - Invalid Lane Number
+    XP_ERR_PORT_CONFIGURATION,      ///< 140 - Port Configuration Error
+    XP_ERR_THREAD_CREATION,         ///< 142 - Thread Creation Failure
+    XP_ERR_LOCK_INIT,               ///< 142 - Lock Initialization error
+    XP_ERR_ACQUIRING_LOCK,          ///< 143 -
+    XP_ERR_RELEASING_LOCK,          ///< 144 -
+    XP_ERR_LOCK_DESTROY,            ///< 145 -
+    XP_ERR_SOCKET_TX,               ///< 146 - Transmit Packet Socket Failure
+    XP_ERR_SOCKET_POLLING,          ///< 147 - Socket Polling Failure
+    XP_ERR_TIMEOUT,                 ///< 148 - Socket Timeout
+    XP_ERR_CONFIG_OPEN,             ///< 149 -
+    XP_ERR_OFFSET_OPEN,             ///< 150 -
+    XP_ERR_INVALID_VALE,            ///< 151 - XXX Typo?
+    XP_SERDES_LOOPBACK_ERROR,       ///< 152 - SERDES Loopback Failure
 
-    XP_ERR_BPAN_COMPLETE_INT_HANDLER_NOT_REGISTERED,    ///< 133 -
-    XP_ERR_TX_UNDER_RUN_INT_HANDLER_NOT_REGISTERED, ///< 134 -
-    XP_ERR_TX_JABBER_INT_HANDLER_NOT_REGISTERED,    ///< 135 -
-    XP_ERR_TX_TIMESTAMP_FIFO_OFLOW_HNDLR_NOT_REGISTERED,        ///< 136 -
-    XP_ERR_TX_TIMESTAMP_FIFO_AVAILABLE_HANDLER_NOT_REGISTERED,  ///< 137 -
-    XP_ERR_FEC_ALI_MAKER_LOST_LN0_INT_HANDLER_NOT_REGISTERED,   ///< 138 - Forward Error Correction Alignment Maker Lost Lane Interrupt Handler Not Registered
-    XP_ERR_FEC_ALI_MAKER_LOST_LN1_INT_HANDLER_NOT_REGISTERED,   ///< 139 - Forward Error Correction Alignment Maker Lost Lane Interrupt Handler Not Registered
-    XP_ERR_FEC_ALI_MAKER_LOST_LN2_INT_HANDLER_NOT_REGISTERED,   ///< 140 - Forward Error Correction Alignment Maker Lost Lane Interrupt Handler Not Registered
-    XP_ERR_FEC_ALI_MAKER_LOST_LN3_INT_HANDLER_NOT_REGISTERED,   ///< 141 - Forward Error Correction Alignment Maker Lost Lane Interrupt Handler Not Registered
-    XP_ERR_FEC_UNCORRE_FRM_INT_HANDLER_NOT_REGISTERED,          ///< 142 - Forward Error Correction Alignment Maker Lost Lane Interrupt Handler Not Registered
-    XP_ERR_FEC_DESKEW_LOST_INT_HANDLER_NOT_REGISTERED,          ///< 143 - Forward Error Correction Alignment Maker Lost Lane Interrupt Handler Not Registered
-    XP_ERR_FEC_BER_OVER_THRE_HANDLER_NOT_REGISTERED,            ///< 144 - Forward Error Correction Bit Error Rate Over Threshold Handler Not Registered
-    XP_ERR_AN_SET_NOT_ALLOWED,      ///< 145 - AutoNegotiation Set Not Allowed
-    XP_ERR_AN_GET_NOT_ALLOWED,      ///< 146 - AutoNegotiation Get Not Allowed
-    XP_ERR_AN_RESTART_NOT_ALLOWED,  ///< 147 - AutoNegotiation Restart Not Allowed
-    XP_ERR_MDIO_STATUS_NOT_CLEAR,   ///< 148 - MDIO Status Not Clear
-    XP_ERR_INVALID_PCSMODE,         ///< 149 - Invalid PCS mode
-    XP_ERR_OP_NOT_SUPPORTED,        ///< 150 - Operation not Supported
-    XP_ERR_UNKNOWN_EVENT,           ///< 151 - Unknown Event Occured
-    XP_ERR_INIT_FAILED,             ///< 152 - Initialization Failure
-    XP_ERR_SERDES_INIT,             ///< 153 - SERDES Initialization Error
-    XP_ERR_SERDES_FW_NOT_INITED,    ///< 154 -
-    XP_ERR_INVALID_MAX_ENTRIES,     ///< 155 -
-    XP_ERR_INVALID_LANE_NUM,        ///< 156 - Invalid Lane Number
-    XP_ERR_PORT_CONFIGURATION,      ///< 157 - Port Configuration Error
-    XP_ERR_THREAD_CREATION,         ///< 158 - Thread Creation Failure
-    XP_ERR_LOCK_INIT,               ///< 159 - Lock Initialization error
-    XP_ERR_ACQUIRING_LOCK,          ///< 160 -
-    XP_ERR_RELEASING_LOCK,          ///< 161 -
-    XP_ERR_LOCK_DESTROY,            ///< 162 -
-    XP_ERR_SOCKET_TX,               ///< 163 - Transmit Packet Socket Failure
-    XP_ERR_SOCKET_POLLING,          ///< 164 - Socket Polling Failure
-    XP_ERR_TIMEOUT,                 ///< 165 - Socket Timeout
-    XP_ERR_CONFIG_OPEN,             ///< 166 -
-    XP_ERR_OFFSET_OPEN,             ///< 167 -
-    XP_ERR_INVALID_VALE,            ///< 168 - 
-    XP_SERDES_LOOPBACK_ERROR,       ///< 169 - SERDES Loopback Failure
     /* Management WM specific error codes */
-    XP_ERR_INVALID_PARAMS,          ///< 170 - Invalid Parameters
-    XP_ERR_TESTBENCH_FAIL,          ///< 171 - Testbench Failure
-    XP_ERR_UNREGISTERED_OFFSET,     ///< 172 - Unregistered Offset
-    XP_ERR_SIGACTION_FAIL,          ///< 173 - Signal Action Failure
-    XP_ERR_DMA_DESC_NULL_ADDR,      ///< 174 - DMA Descriptor NULL
-    XP_ERR_DMA_DESC_OWN,            ///< 175 - DMA Descriptor CPU Owned
-    XP_ERR_DMA_TX,                  ///< 176 - DMA Transmit Failure
-    XP_ERR_DMA_RX,                  ///< 177 - DMA Receive Failure
-    XP_ERR_DMA_RX_EXIT,             ///< 178 - DMA Receive Exit error
-    XP_ERR_PORT_NOT_AVAILABLE,      ///< 179 - Port Not Available
-    XP_UMAC_RX_DISABLE,             ///< 180 -
-    XP_UMAC_TX_DISABLE,             ///< 181 -
-    XP_UMAC_NO_ACTION_REQD,         ///< 182 -
-    XP_ERR_INVALID_UMAC_MODE,       ///< 183 -
-    XP_ERR_UMAC_NOT_IN_SGMII_MODE,  ///< 184 -
-    XP_ERR_UMAC_NOT_IN_MIX_MODE,    ///< 185 -
-    XP_ERR_UMAC_NOT_IN_QSGMII_MODE, ///< 186 -
-    XP_ERR_INVALID_SBUS_CMD,        ///< 187 - Invalid SBUS Command
-    XP_ERR_FILE_CLOSE,              ///< 188 - File Closed
-    XP_ERR_INVALID_BITFIELD,        ///< 189 - Invalid Bitfield
-    XP_ERR_SHADOW_MEM_MGR_FAIL,     ///< 190 - Shadow Memory Manager Failure
-    XP_ERR_SHADOW_MEM_IOCTL_FAIL,   ///< 191 - Shadow Memory IOCTL Failure
-    XP_ERR_MEM_FAIL,                ///< 192 - Memory Failure
-    XP_ERR_MEM_RDWR_FAIL,           ///< 193 - Memory Read/Write Failure
-    XP_ERR_DMAC_RAW_SOCKET_FAIL,    ///< 194 - Destination MAC Raw Socket Failure
-    XP_ERR_DMAC_IOCTL_FAIL,         ///< 195 - Destination MAC IOCTL Failure
-    XP_ERR_DMAC_RAW_SOCKET_RD_FAIL, ///< 196 - Destination MAC Raw Socket Read Failure
-    XP_ERR_DMAC_RAW_SOCKET_WR_FAIL, ///< 197 - Destination MAC Raw Socket Write Failure
-    XP_ERR_FW_FILE_NOT_FOUND,       ///< 198 - Unable to open Service CPU Firmware File
-    XP_ERR_FILE_READ,               ///< 199 - Service CPU Firmware File Read Failure
-    XP_ERR_SCPU_EXCEPTION,          ///< 200 - Service CPU Exception
-    XP_ERR_UMAC_READ_ONLY,          ///< 201 -
-    XP_ERR_UMAC_WRITE_ONLY,         ///< 202 -
-    XP_ERR_SERDES_ACCESS,           ///< 203 - SERDES Access Failure
-    XP_ERR_SBUS_THERMAL_SENSOR_FAILED,  ///< 204 - SBUS Thermal Sensor Failure
-    XP_ERR_I2C_DEV_OPEN,            ///< 205 -
-    XP_ERR_I2C_DEV_CLOSE,           ///< 206 -
-    XP_ERR_I2C_XFER,                ///< 207 - I2C Transfer Error
-    XP_ERR_DONGLE_I2C_XFER,         ///< 208 - I2C Dongle Transfer Error
-    XP_ERR_MDIO_XFER,               ///< 209 - MDIO Transfer Error
-    XP_ERR_MDIO_BUSY,               ///< 210 - MDIO Busy
+    XP_ERR_INVALID_PARAMS,          ///< 153 - Invalid Parameters
+    XP_ERR_TESTBENCH_FAIL,          ///< 154 - Testbench Failure
+    XP_ERR_UNREGISTERED_OFFSET,     ///< 155 - Unregistered Offset
+    XP_ERR_SIGACTION_FAIL,          ///< 156 - Signal Action Failure
+    XP_ERR_DMA_DESC_NULL_ADDR,      ///< 157 - DMA Descriptor NULL
+    XP_ERR_DMA_DESC_OWN,            ///< 158 - DMA Descriptor CPU Owned
+    XP_ERR_DMA_TX,                  ///< 159 - DMA Transmit Failure
+    XP_ERR_DMA_RX,                  ///< 160 - DMA Receive Failure
+    XP_ERR_DMA_RX_EXIT,             ///< 161 - DMA Receive Exit error
+    XP_ERR_PORT_NOT_AVAILABLE,      ///< 162 - Port Not Available
+    XP_UMAC_RX_DISABLE,             ///< 163 -
+    XP_UMAC_TX_DISABLE,             ///< 164 -
+    XP_UMAC_NO_ACTION_REQD,         ///< 165 -
+    XP_ERR_INVALID_UMAC_MODE,       ///< 166 -
+    XP_ERR_UMAC_NOT_IN_SGMII_MODE,  ///< 167 -
+    XP_ERR_UMAC_NOT_IN_MIX_MODE,    ///< 168 -
+    XP_ERR_UMAC_NOT_IN_QSGMII_MODE, ///< 169 -
+    XP_ERR_INVALID_SBUS_CMD,        ///< 170 - Invalid SBUS Command
+    XP_ERR_FILE_CLOSE,              ///< 171 - File Closed
+    XP_ERR_INVALID_BITFIELD,        ///< 172 - Invalid Bitfield
+    XP_ERR_SHADOW_MEM_MGR_FAIL,     ///< 173 - Shadow Memory Manager Failure
+    XP_ERR_SHADOW_MEM_IOCTL_FAIL,   ///< 174 - Shadow Memory IOCTL Failure
+    XP_ERR_MEM_FAIL,                ///< 175 - Memory Failure
+    XP_ERR_MEM_RDWR_FAIL,           ///< 176 - Memory Read/Write Failure
+    XP_ERR_DMAC_RAW_SOCKET_FAIL,    ///< 177 - Destination MAC Raw Socket Failure
+    XP_ERR_DMAC_IOCTL_FAIL,         ///< 178 - Destination MAC IOCTL Failure
+    XP_ERR_DMAC_RAW_SOCKET_RD_FAIL, ///< 179 - Destination MAC Raw Socket Read Failure
+    XP_ERR_DMAC_RAW_SOCKET_WR_FAIL, ///< 180 - Destination MAC Raw Socket Write Failure
+    XP_ERR_FW_FILE_NOT_FOUND,       ///< 181 - Unable to open Service CPU Firmware File
+    XP_ERR_FILE_READ,               ///< 182 - Service CPU Firmware File Read Failure
+    XP_ERR_SCPU_EXCEPTION,          ///< 183 - Service CPU Exception
+    XP_ERR_UMAC_READ_ONLY,          ///< 184 -
+    XP_ERR_UMAC_WRITE_ONLY,         ///< 185 -
+    XP_ERR_SERDES_ACCESS,           ///< 186 - SERDES Access Failure
+    XP_ERR_SBUS_THERMAL_SENSOR_FAILED,  ///< 187 - SBUS Thermal Sensor Failure
+    XP_ERR_I2C_DEV_OPEN,            ///< 188 -
+    XP_ERR_I2C_DEV_CLOSE,           ///< 189 -
+    XP_ERR_I2C_XFER,                ///< 190 - I2C Transfer Error
+    XP_ERR_DONGLE_I2C_XFER,         ///< 191 - I2C Dongle Transfer Error
+    XP_ERR_MDIO_XFER,               ///< 192 - MDIO Transfer Error
+    XP_ERR_MDIO_BUSY,               ///< 193 - MDIO Busy
+    XP_PORT_INITED,             ///< 194 - port is already inited
+    XP_ERR_CALL_DERIVE_CLASS_OBJ,   ///< 195
+    XP_ERR_INVALID_MIN_ETH_FRAME_SIZE,  ///< 196 - Invalid min ethernet frame size received by UMAC. It should be min 64 byte
 
     XP_ERR_OF_BAD_MATCH_FIELD = 300,///< 300 - Unsupported field type in OpenFlow match
     XP_ERR_OF_BAD_MATCH_VALUE,      ///< 301 - Unsupported value in a match field
@@ -297,33 +283,27 @@ typedef enum XP_STATUS_E
     XP_ERR_OF_GROUP_EXISTS,         ///< 314 - Group with such ID exists
     XP_ERR_OF_OUT_OF_GROUP,         ///< 315 - Group add failed because luck of space
     XP_ERR_OF_OUT_OF_BUCKET,        ///< 316 - Group add failed because of bucket limitation
-
     XP_ERR_OF_WEIGHT_UNSUPPORTED,   ///< 317 - Group load sharing unsupported
     XP_ERR_ACM_STATIC_RANGE,        ///< 318 - ACM client corresponds to a static id range. Allocation is not allowed/required for this client+type.
     XP_ERR_INVALID_VLAN_ID,         ///< 319 - Group load sharing unsupported
     XP_ERR_SERDES_NO_SIGNAL,        ///< 320 - no signal detected on serdes
     XP_ERR_MAX_LIMIT,               ///< 321 - Max Limit Exceeded
-    XP_STATUS_NUM_OF_ENTRIES,
-    XP_INVALID_FEC_MODE,             ///< 323 - FEC mode is invalid
-    XP_ERR_LINK_UP,                  ///< 324
-    XP_ERR_INVALID_DEVICE_TYPE,       ///< 325 - Invalid device type provided
-    XP_ERR_FAULT_HANDLER_NOT_REGISTERED,          ///< 326 - fault detection event handler not registered
-    XP_ERR_NO_FAULT_HANDLER_NOT_REGISTERED,       ///< 327 - no fault detection event handler not regostered
-    XP_ERR_SERDES_SIG_HANDLER_NOT_REGISTERED,     ///< 328 - serdes signal detection event handler not registered
-    XP_ERR_NO_SERDES_SIG_HANDLER_NOT_REGISTERED,  ///< 329 - no serdes signal detection event handler not registered
-    XP_PORT_INITED,                               //<330 - port is already inited
-    XP_ERR_INVALID_MIN_ETH_FRAME_SIZE             ///< 331 - Invalid min ethernet frame size received by UMAC. It should be min 64 byte
+    XP_INVALID_FEC_MODE,            ///< 322 - FEC mode is invalid
+    XP_ERR_LINK_UP,                 ///< 323
+    XP_ERR_INVALID_DEVICE_TYPE,     ///< 324 - Invalid device type provided
+    XP_STATUS_NUM_OF_ENTRIES
 } XP_STATUS;
 
 /**
  * \struct xpPacketInfo
- * \brief This structure defines the packet Tx/Rx information for Packet Driver 
+ * \brief Packet Information to be used while Packet Tx/Rx
+ *
  */
 typedef struct xpPacketInfo
 {
-    void *buf;           ///< Packet Data
-    uint16_t bufSize;    ///< Packet Size
-    uint8_t priority;    ///< Packet Priority, applicable during Packet Tx */
+    void *buf;       /**< Packet data */
+    uint16_t bufSize;    /**< Size of Packet */
+    uint8_t priority;    /**< Priority of the Packet, applicable during Packet Tx */
 }xpPacketInfo;
 
 /**
@@ -352,7 +332,7 @@ typedef struct xpPortConfig_t
     uint32_t portState : 2;              ///< Port Spanning State configuration
     uint32_t setEgressPortFilter : 1;    ///< Control ro enable Egress Filtering ID assignment
     uint32_t macSAmissCmd : 2;           ///< Packet Command assignment for MAC SA miss       
-    uint32_t portDscpEn : 1;             ///< Control to enable IP <DSCP> assignment   
+    uint32_t bumPolicerEn : 1;           ///< TODO: Control to enable
     uint32_t portACLEn : 1;              ///< Control to enable Ingress ACL Policy
     uint32_t portDebugEn : 1;            ///< Control to enable Debug Information Output  
     uint32_t portAclId : 8;              ///< Ingress ACL-ID assignment, if enabled
@@ -742,18 +722,17 @@ typedef void (*xpEventHandler)(xpDevice_t devId, uint8_t portNum);
 
 /**
  * \brief Function pointer to be registered for completion of packet transmission
- * \param [in] intrSrcDev
- * \param [out] *packet
+ * \param [in] intrSrcDev Device Id. Valid values are 0-63
  *
  * \return XP_STATUS
  */
-typedef void (*xpPacketTxCompletion)(xpDevice_t intrSrcDev, const void* packet);
+typedef void (*xpPacketTxCompletion)(xpDevice_t intrSrcDev);
 
 /**
  * \brief Function pointer to indicate whether the packet is available
- * \param [in]  intrSrcDev
- * \param [in]  bufSize
- * \param [out] *buf
+ * \param [in] xpDevice_t intrSrcDev Device Id. Valid values are 0-63
+ * \param [out] const void * buf Buffer pointer where packet data is available.
+ * \param [in] uint16_t bufSize Size of packet available
  *
  * \return XP_STATUS
  */
@@ -761,7 +740,7 @@ typedef void (*xpPacketAvailable)(xpDevice_t intrSrcDev, const void* buf, uint16
 
 /**
  * \brief Function pointer to indicate a DMA error
- * \param [in] intrSrcDev
+ * \param [in] xpDevice_t intrSrcDev Device Id. Valid values are 0-63
  *
  * \return XP_STATUS
  */

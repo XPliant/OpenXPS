@@ -38,5 +38,6 @@
 
 #define XP_ROUTE_RC_HOST_TABLE_HIT              302 ///< Host Table hit indication
 #define XP_ROUTE_RC_ROUTE_NOT_POSSIBLE          312 ///< IP Routing failure
+#define XP_ROUTE_RC_TTL1_OR_IP_OPTION           313 ///< IP Options or TTL=1
 
 #endif

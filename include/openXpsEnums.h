@@ -47,8 +47,8 @@ typedef enum xpHashField
     XP_ETHERNET_O_TAG_PCP,
     XP_ETHERNET_O_TAG_DEI,
     XP_ETHERNET_O_TAG_VID,
-    XP_ETHERNET_S_TAG_TPID, 
-    XP_ETHERNET_S_TAG_PCP,                   
+    XP_ETHERNET_S_TAG_TPID,
+    XP_ETHERNET_S_TAG_PCP,
     XP_ETHERNET_S_TAG_DEI,
     XP_ETHERNET_S_TAG_VID,
     XP_ETHERNET_C_TAG_TPID,
@@ -522,18 +522,43 @@ typedef enum xpEventType
     TX_JABBER,                       ///< MAC Tx Packet Jabber Event
     TX_TIMESTAMPS_FIFO_OVER_FLOW,    ///< MAC Tx Timestamp Overlow error Event: Last Timestamp value is dropped
     TX_TIMESTAMPS_FIFO_AVAILABLE,    ///< MAC Tx Timestamp Fifo available Event: An indication that the Transmit Timestamp FIFO has data and is not empty
+    RX_LOCAL_FAULT,                  // TODO: interrupt available in B0
+    RX_REMOTE_FAULT,                 // TODO: interrupt available in B0
+    RX_CRC_ERROR,                    // TODO: interrupt available in B0
     TX_BASE_PAGE_STARTED,            ///< Backplan Autonegotiation Event: DME base page transfer started   
     TX_NEXT_PAGE_STARTED,            ///< Backplan Autonegotiation Event: DME next page transfer started   
     RX_BASE_PAGE_STARTED,            ///< Backplan Autonegotiation Event: DME base page received   
     RX_NEXT_PAGE_STARTED,            ///< Backplan Autonegotiation Event: DME next page received   
     BPAN_COMPLETED,                  ///< Backplan Autonegotiation completion Event
+    BPAN_INT,                        // TODO: interrupt available in B0
+    /* RS/FC FEC interrupts */
     FEC_ALIGNMENT_MAKER_LOST_LANE0,  ///< FEC Alignment Marker error on lane 0 Event
     FEC_ALIGNMENT_MAKER_LOST_LANE1,  ///< FEC Alignment Marker error on lane 1 Event
     FEC_ALIGNMENT_MAKER_LOST_LANE2,  ///< FEC Alignment Marker error on lane 2 Event
     FEC_ALIGNMENT_MAKER_LOST_LANE3,  ///< FEC Alignment Marker error on lane 3 Event
     FEC_UNCORRECTABLE_FRM,           ///< FEC Uncorrectable Frame error Event
     FEC_DESKEW_LOST,                 ///< FEC Deskew error Event
-    FEC_BER_OVER_THRESHOLD           ///< FEC High BER Event
+    FEC_BER_OVER_THRESHOLD,          ///< FEC High BER Event
+    FC_FEC_BLOCK_LOCK_GAINED,        // TODO: interrupt available in B0
+    FC_FEC_BLOCK_LOCK_LOST,          // TODO: interrupt available in B0
+    FC_FEC_BAD_CODEWORD,             // TODO: interrupt available in B0
+    FC_FEC_TOO_MANY_REQUESTED,       // TODO: interrupt available in B0
+    FC_FEC_UNCORRECTED_CODEWORD,     // TODO:
+
+    /* pcs interrupts event */
+    /* High speed multi-channel pcs */
+    HSMCPCS_BLOCK_LOCK,              // TODO:
+    HSMCPCS_FAULT,                   // TODO:
+    HSMCPCS_TX_GEARBOX_FIFO_ERROR,   // TODO:
+    HSMCPCS_DECODER_TRAP,            // TODO:
+    HSMCPCS_DEBUG_DESKEW_OVERFLOW,   // TODO:
+    HSMCPCS_LOSS_OF_SYNC,            // TODO:
+    HSMCPCS_LOSS_OF_BLOCK_LOCK,      // TODO:
+    HSMCPCS_HIGH_BER_EVENT,          // TODO:
+    HSMCPCS_ERROR_BLOCK,             // TODO:
+
+    /* low speed multi-channel pcs */
+    LSMCPCS_AN_DONE                  // TODO:
 }xpEventType;
 
 /**
@@ -597,6 +622,7 @@ typedef enum xpAcmClient_e
     XP_ACM_PORT_RANGE       = 0x40000,
     XP_ACM_PORT_VLAN        = 0x80000,
     XP_ACM_TUNNEL_COUNTER   = 0x100000,
+    XP_ACM_COPP_POLICER     = 0x200000,
 }xpAcmClient_e;
 
 /**
@@ -628,7 +654,7 @@ typedef enum XP_PROFILE_TYPE_E
     XP_DEFAULT_TWO_PIPE_PROFILE             = 1,
     XP_ROUTE_CENTRIC_SINGLE_PIPE_PROFILE    = 2,
     XP_OPENFLOW_HYBRID_SINGLE_PIPE_PROFILE  = 3,
-    XP_MAX_PROFILE                          = 7
+    XP_MAX_PROFILE                          = 8
 }XP_PROFILE_TYPE;
 
 /**
