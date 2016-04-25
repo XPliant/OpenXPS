@@ -1,18 +1,27 @@
-/************************************************************************/
-/*  Copyright (c) [2016] Cavium, Inc. All rights reserved.              */
-/*  Unpublished - rights reserved under the Copyright Laws of the       */
-/*  United States.  Use, duplication, or disclosure by the              */
-/*  Government is subject to restrictions as set forth in               */
-/*  subparagraph (c)(1)(ii) of the Rights in Technical Data and         */
-/*  Computer Software clause at 252.227-7013.                           */
-/************************************************************************/
-/*
- * This software is licensed to you under the terms of the GNU General Public
- * License version 2 (the "GPL"). 
- * TBD: need to update the GPL banner from Cavium Legal .
- */
-
-
+/************************************************************************
+* Copyright (C) 2016, Cavium, Inc.
+* All Rights Reserved.
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; version 2
+* of the License.
+* 
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* A copy of the GNU General Public License, version 2 is available in the file 
+* named LICENSE-GPLv2.md either in this directory or its root. 
+* Alernatively to obtain a copy, write to the Free Software Foundation, Inc., 
+* 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*
+* File: xp_pcie_slave.h
+* 
+* Abstract: This file contains the enums, macros, msg defs required for pcie 
+* slave component/module of this driver.
+************************************************************************/
 #ifndef _XP_PCIE_SLAVE_H
 #define _XP_PCIE_SLAVE_H
 

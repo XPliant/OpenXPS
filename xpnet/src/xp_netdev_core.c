@@ -1,17 +1,26 @@
-/************************************************************************/
-/*  Copyright (c) [2016] Cavium, Inc. All rights reserved.              */
-/*  Unpublished - rights reserved under the Copyright Laws of the       */
-/*  United States.  Use, duplication, or disclosure by the              */
-/*  Government is subject to restrictions as set forth in               */
-/*  subparagraph (c)(1)(ii) of the Rights in Technical Data and         */
-/*  Computer Software clause at 252.227-7013.                           */
-/************************************************************************/
-/*
- * This software is licensed to you under the terms of the GNU General Public
- * License version 2 (the "GPL"). 
- * TBD: need to update the GPL banner from Cavium Legal .
- */
-
+/************************************************************************
+ * Copyright (C) 2016, Cavium, Inc.
+ * All Rights Reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * A copy of the GNU General Public License, version 2 is available in the file 
+ * named LICENSE-GPLv2.md either in this directory or its root. 
+ * Alernatively to obtain a copy, write to the Free Software Foundation, Inc., 
+ * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * File: xp_netdev_core.c
+ * 
+ * Abstract: This file contains the netdev implementation requried for xpliant.
+ ************************************************************************/
 #include "xp_common.h"
 #include "xp_netdev.h"
 
@@ -22,7 +31,6 @@
 #define READ_REG    1U
 #define WRITE_REG   0U
 
-/* TODO Do we need to allow these as config */
 #define XPNET_MAX_PACKET_SIZE           (16 << 10)
 #define XPNET_MIN_PACKET_SIZE           (60 + 24)
 #define XPNET_MAX_DMA_SIZE              (4 << 10)
@@ -259,8 +267,8 @@ static void xpnet_set_q_cdp(xpnet_private_t *net_priv,
 {
     u64 base_cdp = (u64) q->dma + (idx * (sizeof(xpnet_descriptor_t)));
     u32 reg = (q->xpq_type == XPNET_QUEUE_TYPE_TX) ?
-         XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CDP_REG_E :
-         XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CDP_REG_E;
+         DMA0_RX_CDP_REG_E :
+         DMA0_TX_CDP_REG_E;
 
     fdebug("Entering %s(), cdp = %016llx\n", __func__, base_cdp);
 
@@ -269,94 +277,24 @@ static void xpnet_set_q_cdp(xpnet_private_t *net_priv,
         __xp_dev_write_q(net_priv, reg, 2, (u32 *) & base_cdp, q->xpq_id);
 }
 
-/*
- * xpnet_clear_error_and_regress_cdp
- *
- * clears the error registers and regress the cdp to its expected value
- */
-#if 0
-static int xpnet_clear_error_and_regress_cdp(struct net_device *netdev,
-                                             struct xpnet_queue_struct *q,
-                                             u8 aflags)
-{
-    u64 rv64;
-    u32 reg;
-    struct xpnet_private *priv = netdev_priv(netdev);
-    reg_rw_func read_fn, write_fn;
-
-    if (aflags & XPNET_AFLAG_ACQLOCK) {
-        read_fn = xpRegReadQ;
-        write_fn = xpRegWriteQ;
-    } else {
-        read_fn = __xpRegReadQ;
-        write_fn = __xpRegWriteQ;
-    }
-
-    /* Check if the h/w verision is A0. */
-    if ((priv->hw_flags & XPNET_HWFLAG_A0) == 0) {
-        fdebug("HW version mismatch.\n");
-        return -EINVAL;
-    }
-
-    if (q->xpq_type != XPNET_QUEUE_TYPE_TX) {
-        fdebug("Not handling RX errors now.\n");
-        return -EINVAL;
-    }
-
-    /* Make sure that queue is indeed stopped */
-    reg = XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CMD_REG_E;
-    rv64 = 0;
-    read_fn(netdev, reg, (u32 *) & rv64, q->xpq_id);
-    if (rv64 & (1 << 3)) {
-        /* Queue is enabled. Don't proceed. */
-        fdebug("Queue is enabled. Can't proceed.\n");
-        return -EFAULT;
-    }
-
-#if 0
-    /* Queue stopped. Clear errors, if there are */
-    fdebug("Clearing errors.\n");
-    regval = 0;
-    reg = XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CHAIN_LEN_ERR_REG_E;
-    write_fn(netdev, reg, (u32 *) & regval, q->xpq_id);
-    reg = XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CPU_OWN_DESC_ERR_REG_E;
-    write_fn(netdev, reg, (u32 *) & regval, q->xpq_id);
-    reg = XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_ZERO_BUF_LEN_ERR_REG_E;
-    write_fn(netdev, reg, (u32 *) & regval, q->xpq_id);
-    reg = XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_PCIE_ERR_REG_E;
-    write_fn(netdev, reg, (u32 *) & regval, q->xpq_id);
-#endif
-
-    /* reset cdp to expected value (q->tail)
-     * We need to access q->tail, but it must be locked access.
-     * We asume that this is int,read access and so is atomic
-     * verify XXX TODO */
-    fdebug("Resetting cdp to idx %d\n", q->tail);
-    xpnet_set_q_cdp(netdev, q, q->tail, aflags);
-    return 0;
-}
-#endif
-
-#if 0
-static u64 xpnet_get_q_cdp(xpnet_private_t *net_priv,
+u64 xpnet_get_q_cdp(xpnet_private_t *net_priv,
                     xpnet_queue_struct_t *q, u8 aflags)
 {
     u64 base_cdp = 0;
     u32 reg = (q->xpq_type == XPNET_QUEUE_TYPE_TX) ?
-        XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CDP_REG_E :
-        XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CDP_REG_E;
+        DMA0_RX_CDP_REG_E :
+        DMA0_TX_CDP_REG_E;
 
     fdebug("Entering %s()\n", __func__);
 
     (aflags & XPNET_AFLAG_ACQLOCK) ?
-        xpRegReadQ(net_priv, reg, 2, (u32 *) & base_cdp, q->xpq_id) :
-        __xpRegReadQ(net_priv, reg, 2, (u32 *) & base_cdp, q->xpq_id);
+        xp_dev_reg_read_q(net_priv, reg, 2, (u32 *) & base_cdp, q->xpq_id) :
+        __xp_dev_reg_read_q(net_priv, reg, 2, (u32 *) & base_cdp, q->xpq_id);
 
     fdebug("Read cdp = %016llx\n", base_cdp);
 
     return base_cdp;
 }
-#endif
 
 /*
  * __xpnet_enable_queue
@@ -372,8 +310,8 @@ static void xpnet_queue_en_dis(xpnet_private_t *net_priv,
                                u8 enable, u8 prio, u8 aflags)
 {
     u32 reg = (q->xpq_type == XPNET_QUEUE_TYPE_TX) ?
-        XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CMD_REG_E :
-        XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CMD_REG_E;
+        DMA0_RX_CMD_REG_E :
+        DMA0_TX_CMD_REG_E;
     u64 regval;
     reg_rw_func read_fn, write_fn;
 
@@ -384,21 +322,6 @@ static void xpnet_queue_en_dis(xpnet_private_t *net_priv,
         read_fn = __xp_dev_reg_read_q;
         write_fn = __xp_dev_write_q;
     }
-
-    /* There is a h/w bug that is fixed in B0
-     * https://intranet.xpliant.com/mantis/view.php?id=4644
-     * Essentially, cdp gets advanced to next descriptor pointer
-     * in case of an error.
-     * In A0, ownership bit cleared is treated as an error by DMA
-     * engine. That means, we need to check the error bits, clear
-     * them and regress cdp to intended one.
-     */
-#if 0
-    if (enable && (q->xpq_type == XPNET_QUEUE_TYPE_TX) &&
-        ((priv->hw_flags & XPNET_HWFLAG_A0) == 0)) {
-        xpnet_clear_error_and_regress_cdp(netdev, q, aflags);
-    }
-#endif
 
     /* fdebug("Entering %s(), qid = %d, en %d, flag %d\n",
               __func__, q->xpq_id, enable, aflags); */
@@ -474,24 +397,6 @@ static void xpnet_rx_queue_link_and_enable(xpnet_queue_struct_t *q)
     q->tail = 0; /* Indicate init complete. */
     q->status = XPNET_QUEUE_ACTIVE;
 }
-
-#if 0
-static void __xpnet_debug_dump_data(u8 *ptr, u32 len)
-{
-    int i = 0;
-
-    /* fdebug("Entering %s()\n", __func__); */
-
-    printk("Dumping %p, size %d\n", ptr, len);
-    for (i = 0; i < len; i++) {
-        if ((i % 16) == 0) {
-            printk("\n");
-        }
-
-        printk("%02x ", ptr[i]);
-    }
-}
-#endif
 
 /* __xpnet_rx_desc_reset
  * Called with q->xpq_lock held
@@ -857,24 +762,6 @@ static int xpnet_tx_queue_setup(xpnet_private_t *net_priv, int num_queues)
     return 0;
 }
 
-#if 0
-static void xpnet_reset_dma(xpnet_private_t *net_priv)
-{
-    u32 reg, regval;
-
-    /* fdebug("Entering %s()\n", __func__); */
-    reg = XP_MGMT_LOCAL_REG_CORE_CTRL_REG__1_E;
-    xpRegReadQ(net_priv, reg, 1, (u32 *) & regval, 0);
-    regval &= ~(1 << 1);
-    xpRegWriteQ(net_priv, reg, 1, (u32 *) & regval, 0);
-    udelay(20);
-    regval |= (1 << 1);
-    xpRegWriteQ(net_priv, reg, 1, (u32 *) & regval, 0);
-    xpRegReadQ(net_priv, reg, 1, (u32 *) & regval, 0);
-    fdebug("Reset complete %#x\n", regval);
-}
-#endif
-
 /*
  * xpnet_program_mux_setdma
  *
@@ -887,7 +774,7 @@ static void xpnet_program_mux_setdma(xpnet_private_t *net_priv, u32 flag)
     u32 regval, reg;
 
     /* fdebug("Entering %s()\n", __func__); */
-    reg = XP_MGMT_LOCAL_REG_MGMT_CTRL_REG_E;
+    reg = MGMT_CTRL_REG_E;
     xp_dev_reg_read_q(net_priv, reg, 1, &regval, 0);
     fdebug("Mux register %x.\n", regval);
 
@@ -941,7 +828,7 @@ static void xpnet_rx_queue_process(xpnet_private_t *net_priv,
 
         /* Check completion if no error. */
         if ((d->va->qword[0] >> XP_RX_DESCRIPTOR_BITOFF_OWNERSHIP) & 0x01) {
-            fdebug("Dma still owns the desc. Rx in progress.\n");
+            //fdebug("Dma still owns the desc. Rx in progress.\n");
             spin_unlock_irqrestore(&q->xpq_lock, flags);
             return;
         }
@@ -956,8 +843,6 @@ static void xpnet_rx_queue_process(xpnet_private_t *net_priv,
 
         pkt_size = (d->va->qword[1] >> 16) & 0xffff;
 
-        /* TODO adjust 16 bytes of the incoming packet size
-         * HW bug XXX */
         if (net_priv->pci_priv->mode == XP_A0_UNCOMPRESSED) {
             pkt_size -= 16;
         }
@@ -1356,7 +1241,6 @@ static void xpnet_tx_complete(xpnet_private_t *net_priv, int qno, int maxiter)
     }
 
     if ((net_priv->hw_flags & XPNET_HWFLAG_A0) != 0) {
-        /* XXX resetting both head and tail: hw erratum workaround. */
         q->head = q->xpq_num_desc - 1;
         q->tail = 0;
     }

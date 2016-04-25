@@ -1,18 +1,27 @@
-/************************************************************************/
-/*  Copyright (c) [2016] Cavium, Inc. All rights reserved.              */
-/*  Unpublished - rights reserved under the Copyright Laws of the       */
-/*  United States.  Use, duplication, or disclosure by the              */
-/*  Government is subject to restrictions as set forth in               */
-/*  subparagraph (c)(1)(ii) of the Rights in Technical Data and         */
-/*  Computer Software clause at 252.227-7013.                           */
-/************************************************************************/
-/*
- * This software is licensed to you under the terms of the GNU General Public
- * License version 2 (the "GPL"). 
- * TBD: need to update the GPL banner from Cavium Legal .
- */
-
-
+/************************************************************************
+* Copyright (C) 2016, Cavium, Inc.
+* All Rights Reserved.
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; version 2
+* of the License.
+* 
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* A copy of the GNU General Public License, version 2 is available in the file 
+* named LICENSE-GPLv2.md either in this directory or its root. 
+* Alernatively to obtain a copy, write to the Free Software Foundation, Inc., 
+* 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*
+* File: xp_netdev_proc.c
+* 
+* Abstract: This file contains the netdev message processing implementation for 
+* xpliant.
+************************************************************************/
 #include "xp_common.h"
 #include "xp_netdev.h"
 
@@ -74,77 +83,77 @@ static void common_registers_dump(xpnet_private_t *net_priv,
     u32 reg;
     int qno = 0;
 
-    reg = XP_MGMT_LOCAL_REG_MGMT_CTRL_REG_E;
+    reg = MGMT_CTRL_REG_E;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_LOCAL_REG_MGMT_CTRL_REG_E "
+    seq_printf(sf, "MGMT_CTRL_REG_E "
                    "= %#010x\n", regval);
-    reg = XP_MGMT_LOCAL_REG_CORE_CTRL_REG__1_E;
+    reg = CORE_CTRL_REG__1_E;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_LOCAL_REG_CORE_CTRL_REG__1_E "
+    seq_printf(sf, "CORE_CTRL_REG__1_E "
                    "= %#010x\n", regval);
-    reg = XP_MGMT_LOCAL_REG_TX_DMA0_RETRY_CNT_REG_E;
+    reg = TX_DMA0_RETRY_CNT_REG_E;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
     seq_printf(sf, "XP_MGMT_LOCAL_REG_TX_DMA0_RETRY_CNT_REG "
                    "= %#010x\n", regval);
-    reg = XP_MGMT_TX_DMA0_CFG_REG_DMA0_CLR_ERR_CNT_REG_E;
+    reg = DMA0_CLR_ERR_CNT_REG_E;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_TX_DMA0_CFG_REG_DMA0_CLR_ERR_CNT_REG "
+    seq_printf(sf, "DMA0_CLR_ERR_CNT_REG "
                    "= %#010x\n", regval);
-    reg = XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CHAIN_LEN_ERR_REG_E;
+    reg = DMA0_TX_CHAIN_LEN_ERR_REG_E;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CHAIN_LEN_ERR_REG "
+    seq_printf(sf, "DMA0_TX_CHAIN_LEN_ERR_REG "
                    "= %#010x\n", regval);
-    reg = XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CPU_OWN_DESC_ERR_REG_E;
+    reg = DMA0_TX_CPU_OWN_DESC_ERR_REG_E;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CPU_OWN_DESC_ERR_REG "
+    seq_printf(sf, "DMA0_TX_CPU_OWN_DESC_ERR_REG "
                    "= %#010x\n", regval);
-    reg = XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_ZERO_BUF_LEN_ERR_REG_E;
+    reg = DMA0_TX_ZERO_BUF_LEN_ERR_REG_E;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_ZERO_BUF_LEN_ERR_REG "
+    seq_printf(sf, "DMA0_TX_ZERO_BUF_LEN_ERR_REG "
                    "= %#010x\n", regval);
-    reg = XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_PCIE_ERR_REG_E;
+    reg = DMA0_TX_PCIE_ERR_REG_E;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_PCIE_ERR_REG "
+    seq_printf(sf, "DMA0_TX_PCIE_ERR_REG "
                    "= %#010x\n", regval);
-    reg = XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_DMA_INTF_ERR_REG_E;
+    reg = DMA0_TX_DMA_INTF_ERR_REG_E;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_DMA_INTF_ERR_REG "
+    seq_printf(sf, "DMA0_TX_DMA_INTF_ERR_REG "
                    "= %#010x\n", regval);
-    reg = XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_PKT_DROP_E;
+    reg = DMA0_TX_PKT_DROP_E;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_PKT_DROP "
+    seq_printf(sf, "DMA0_TX_PKT_DROP "
                    "= %#010x\n", regval);
-    reg = XP_MGMT_TX_DMA0_CFG_REG_XP_MGMT_TX_DMA0_CFG_REGLOCKREG_E;
+    reg = TX_DMA0_CFG_REGLOCKREG_E;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_TX_DMA0_CFG_REG_XP_MGMT_TX_DMA0_CFG_REGLOCKREG "
+    seq_printf(sf, "XP_MGMT_TX_DMA0_CFG_REGLOCKREG "
                    "= %#010x\n", regval);
-    reg = XP_MGMT_TX_DMA0_CFG_REG_SCRATCHPAD_E;
+    reg = TX_DMA0_SCRATCHPAD_E;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_TX_DMA0_CFG_REG_SCRATCHPAD "
+    seq_printf(sf, "TX_DMA0_SCRATCHPAD "
                    "= %#010x\n", regval);
-    reg = XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CHAIN_LEN_ERR_REG_E;
+    reg = DMA0_RX_CHAIN_LEN_ERR_REG_E;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CHAIN_LEN_ERR_REG "
+    seq_printf(sf, "DMA0_RX_CHAIN_LEN_ERR_REG "
                    "= %#010x\n", regval);
-    reg = XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CPU_OWN_DESC_ERR_REG_E;
+    reg = DMA0_RX_CPU_OWN_DESC_ERR_REG_E;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CPU_OWN_DESC_ERR_REG "
+    seq_printf(sf, "DMA0_RX_CPU_OWN_DESC_ERR_REG "
                    "= %#010x\n", regval);
-    reg = XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_ZERO_BUF_LEN_ERR_REG_E;
+    reg = DMA0_RX_ZERO_BUF_LEN_ERR_REG_E;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_ZERO_BUF_LEN_ERR_REG "
+    seq_printf(sf, "DMA0_RX_ZERO_BUF_LEN_ERR_REG "
                    "= %#010x\n", regval);
-    reg = XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_PCIE_ERR_REG_E;
+    reg = DMA0_RX_PCIE_ERR_REG_E;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_PCIE_ERR_REG "
+    seq_printf(sf, "DMA0_RX_PCIE_ERR_REG "
                    "= %#010x\n", regval);
-    reg = XP_MGMT_RX_DMA0_CFG_REG_XP_MGMT_RX_DMA0_CFG_REGLOCKREG_E;
+    reg = RX_DMA0_CFG_REGLOCKREG_E;
     xp_dev_reg_read_q(net_priv, reg,1,  (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_RX_DMA0_CFG_REG_XP_MGMT_RX_DMA0_CFG_REGLOCKREG "
+    seq_printf(sf, "XP_MGMT_RX_DMA0_CFG_REGLOCKREG "
                    "= %#010x\n", regval);
-    reg = XP_MGMT_RX_DMA0_CFG_REG_SCRATCHPAD_E;
+    reg = RX_DMA0_SCRATCHPAD_E;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_RX_DMA0_CFG_REG_SCRATCHPAD "
+    seq_printf(sf, "RX_DMA0_SCRATCHPAD "
                    "= %#010x\n", regval);
 }
 
@@ -193,29 +202,29 @@ static void queue_registers_dump(xpnet_private_t *net_priv, int qno,
 
     type = "UPSTREAM-RX(host)";
     seq_printf(sf, "%s\n", type);
-    reg = XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CDP_REG_E;
+    reg = DMA0_TX_CDP_REG_E;
     xp_dev_reg_read_q(net_priv, reg, 2, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CDP_REG[%d] "
+    seq_printf(sf, "DMA0_TX_CDP_REG[%d] "
                    "= %#016llx\n", qno, regval);
 
-    reg = XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CMD_REG_E;
+    reg = DMA0_TX_CMD_REG_E;
     regval = 0;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CMD_REG[%d] "
+    seq_printf(sf, "DMA0_TX_CMD_REG[%d] "
                    "= %#016llx\n", qno, regval);
 
     type = "DSTREAM-TX(host)";
     seq_printf(sf, "%s\n", type);
-    reg = XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CDP_REG_E;
+    reg = DMA0_RX_CDP_REG_E;
     regval = 0;
     xp_dev_reg_read_q(net_priv, reg, 2, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CDP_REG[%d] "
+    seq_printf(sf, "DMA0_RX_CDP_REG[%d] "
                    "= %#016llx\n", qno, regval);
 
-    reg = XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CMD_REG_E;
+    reg = DMA0_RX_CMD_REG_E;
     regval = 0;
     xp_dev_reg_read_q(net_priv, reg, 1, (u32 *)&regval, qno);
-    seq_printf(sf, "XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CMD_REG[%d] "
+    seq_printf(sf, "DMA0_RX_CMD_REG[%d] "
                    "= %#016llx\n", qno, regval);
 }
 

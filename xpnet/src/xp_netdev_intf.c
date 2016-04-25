@@ -1,18 +1,27 @@
-/************************************************************************/
-/*  Copyright (c) [2016] Cavium, Inc. All rights reserved.              */
-/*  Unpublished - rights reserved under the Copyright Laws of the       */
-/*  United States.  Use, duplication, or disclosure by the              */
-/*  Government is subject to restrictions as set forth in               */
-/*  subparagraph (c)(1)(ii) of the Rights in Technical Data and         */
-/*  Computer Software clause at 252.227-7013.                           */
-/************************************************************************/
-/*
- * This software is licensed to you under the terms of the GNU General Public
- * License version 2 (the "GPL"). 
- * TBD: need to update the GPL banner from Cavium Legal .
- */
-
-
+/************************************************************************
+ * Copyright (C) 2016, Cavium, Inc.
+ * All Rights Reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * A copy of the GNU General Public License, version 2 is available in the file 
+ * named LICENSE-GPLv2.md either in this directory or its root. 
+ * Alernatively to obtain a copy, write to the Free Software Foundation, Inc., 
+ * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * File: xp_netdev_intf.c
+ * 
+ * Abstract: This file contains the netdev interface implementation required
+ * for xpliant. 
+ ************************************************************************/
 #include "xp_common.h"
 #include "xp_export.h"
 
@@ -358,8 +367,6 @@ static netdev_tx_t xp_ndo_start_xmit(struct sk_buff *skb,
             dev_kfree_skb_any(new_skb);
         }
 
-        /* Once netdev got stopped, currently no way to wake up*/
-        /* TODO: Identify the way to wake up the all the netdevs*/
         netif_stop_queue(dev);
     }
 

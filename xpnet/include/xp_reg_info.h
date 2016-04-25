@@ -1,18 +1,26 @@
-/************************************************************************/
-/*  Copyright (c) [2016] Cavium, Inc. All rights reserved.              */
-/*  Unpublished - rights reserved under the Copyright Laws of the       */
-/*  United States.  Use, duplication, or disclosure by the              */
-/*  Government is subject to restrictions as set forth in               */
-/*  subparagraph (c)(1)(ii) of the Rights in Technical Data and         */
-/*  Computer Software clause at 252.227-7013.                           */
-/************************************************************************/
-/*
- * This software is licensed to you under the terms of the GNU General Public
- * License version 2 (the "GPL"). 
- * TBD: need to update the GPL banner from Cavium Legal .
- */
-
-
+/************************************************************************
+* Copyright (C) 2016, Cavium, Inc.
+* All Rights Reserved.
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; version 2
+* of the License.
+* 
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* A copy of the GNU General Public License, version 2 is available in the file 
+* named LICENSE-GPLv2.md either in this directory or its root. 
+* Alernatively to obtain a copy, write to the Free Software Foundation, Inc., 
+* 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*
+* File: xp_reg_info.h
+* 
+* Abstract: This file contains the register definitions.
+************************************************************************/
 #ifndef _XP_REG_INFO_H
 #define _XP_REG_INFO_H
 
@@ -40,36 +48,36 @@ typedef enum xp_mode {
 } xp_mode_t;
 
 typedef enum xp_register {
-    XP_HIGH_PRIO_REG_ADDR,
-    XP_LOW_PRIO_REG_ADDR,
-    XP_HIGH_INTR_SOURCE_REG_ADDR,
-    XP_DMA0_TXDONE_STATUS_REG,
-    XP_DMA0_RXDONE_STATUS_REG,
-    XP_HIGH_PRIO_INT_ENABLE_REG_ADDR,
-    XP_LOW_PRIO_INT_ENABLE_REG_ADDR,
+    HIGH_PRIO_REG_ADDR,
+    LOW_PRIO_REG_ADDR,
+    HIGH_INTR_SOURCE_REG_ADDR,
+    DMA0_TXDONE_STATUS_REG,
+    DMA0_RXDONE_STATUS_REG,
+    HIGH_PRIO_INT_ENABLE_REG_ADDR,
+    LOW_PRIO_INT_ENABLE_REG_ADDR,
 
-    XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CDP_REG_E,
-    XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CDP_REG_E,
-    XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CMD_REG_E,
-    XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CMD_REG_E,
-    XP_MGMT_LOCAL_REG_CORE_CTRL_REG__1_E,
-    XP_MGMT_LOCAL_REG_TX_DMA0_RETRY_CNT_REG_E,
-    XP_MGMT_LOCAL_REG_MGMT_CTRL_REG_E,
-    XP_MGMT_TX_DMA0_CFG_REG_DMA0_CLR_ERR_CNT_REG_E,
-    XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CHAIN_LEN_ERR_REG_E,
-    XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CPU_OWN_DESC_ERR_REG_E,
-    XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_ZERO_BUF_LEN_ERR_REG_E,
-    XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_PCIE_ERR_REG_E,
-    XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_DMA_INTF_ERR_REG_E,
-    XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_PKT_DROP_E,
-    XP_MGMT_TX_DMA0_CFG_REG_XP_MGMT_TX_DMA0_CFG_REGLOCKREG_E,
-    XP_MGMT_TX_DMA0_CFG_REG_SCRATCHPAD_E,
-    XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CHAIN_LEN_ERR_REG_E,
-    XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CPU_OWN_DESC_ERR_REG_E,
-    XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_ZERO_BUF_LEN_ERR_REG_E,
-    XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_PCIE_ERR_REG_E,
-    XP_MGMT_RX_DMA0_CFG_REG_XP_MGMT_RX_DMA0_CFG_REGLOCKREG_E,
-    XP_MGMT_RX_DMA0_CFG_REG_SCRATCHPAD_E,
+    DMA0_RX_CDP_REG_E,
+    DMA0_TX_CDP_REG_E,
+    DMA0_RX_CMD_REG_E,
+    DMA0_TX_CMD_REG_E,
+    CORE_CTRL_REG__1_E,
+    TX_DMA0_RETRY_CNT_REG_E,
+    MGMT_CTRL_REG_E,
+    DMA0_CLR_ERR_CNT_REG_E,
+    DMA0_TX_CHAIN_LEN_ERR_REG_E,
+    DMA0_TX_CPU_OWN_DESC_ERR_REG_E,
+    DMA0_TX_ZERO_BUF_LEN_ERR_REG_E,
+    DMA0_TX_PCIE_ERR_REG_E,
+    DMA0_TX_DMA_INTF_ERR_REG_E,
+    DMA0_TX_PKT_DROP_E,
+    TX_DMA0_CFG_REGLOCKREG_E,
+    TX_DMA0_SCRATCHPAD_E,
+    DMA0_RX_CHAIN_LEN_ERR_REG_E,
+    DMA0_RX_CPU_OWN_DESC_ERR_REG_E,
+    DMA0_RX_ZERO_BUF_LEN_ERR_REG_E,
+    DMA0_RX_PCIE_ERR_REG_E,
+    RX_DMA0_CFG_REGLOCKREG_E,
+    RX_DMA0_SCRATCHPAD_E,
 
     XP_MAX_REG_ACCESS_LIST
 } xp_register_t;

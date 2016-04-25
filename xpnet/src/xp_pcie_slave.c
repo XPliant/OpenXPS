@@ -1,18 +1,27 @@
-/************************************************************************/
-/*  Copyright (c) [2016] Cavium, Inc. All rights reserved.              */
-/*  Unpublished - rights reserved under the Copyright Laws of the       */
-/*  United States.  Use, duplication, or disclosure by the              */
-/*  Government is subject to restrictions as set forth in               */
-/*  subparagraph (c)(1)(ii) of the Rights in Technical Data and         */
-/*  Computer Software clause at 252.227-7013.                           */
-/************************************************************************/
-/*
- * This software is licensed to you under the terms of the GNU General Public
- * License version 2 (the "GPL"). 
- * TBD: need to update the GPL banner from Cavium Legal .
- */
-
-
+/************************************************************************
+* Copyright (C) 2016, Cavium, Inc.
+* All Rights Reserved.
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; version 2
+* of the License.
+* 
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* A copy of the GNU General Public License, version 2 is available in the file 
+* named LICENSE-GPLv2.md either in this directory or its root. 
+* Alernatively to obtain a copy, write to the Free Software Foundation, Inc., 
+* 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*
+* File: xp_pcie_slave.c
+* 
+* Abstract: This file contains the pcie core/slave implementation required for 
+* xpliant.
+************************************************************************/
 #include <linux/fs.h>
 #include <linux/module.h>
 #include <linux/pci.h>
@@ -235,49 +244,49 @@ u32 xp_regs_list[XP_MAX_REG_ACCESS_LIST][XP80_SUPPORTED_DEVICE_MODES] =
     {          0, 0x08a80180, 0x025e8180 },
     /* LOW_PRIO_INT_ENABLE_REG                                  */
     {          0, 0x08a80190, 0x025e8190 },
-    /* XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CDP_REG_E                */
+    /* DMA0_RX_CDP_REG_E                */
     { 0x08b51400, 0x08b51400, 0x02750000 },
-    /* XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CDP_REG_E                */
+    /* DMA0_TX_CDP_REG_E                */
     { 0x08b51000, 0x08b51000, 0x0274c000 },
-    /* XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CMD_REG_E                */
+    /* DMA0_RX_CMD_REG_E                */
     { 0x08b51600, 0x08b51600, 0x02750200 },
-    /* XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CMD_REG_E                */
+    /* DMA0_TX_CMD_REG_E                */
     { 0x08b51200, 0x08b51200, 0x0274c200 },
-    /* XP_MGMT_LOCAL_REG_CORE_CTRL_REG__1_E                     */
+    /* CORE_CTRL_REG__1_E                     */
     { 0x08a80168, 0x08a8028c, 0x025e828c },
-    /* XP_MGMT_LOCAL_REG_TX_DMA0_RETRY_CNT_REG_E                */
+    /* TX_DMA0_RETRY_CNT_REG_E                */
     { 0x08a802dc, 0x08a80444, 0x025e8444 },
-    /* XP_MGMT_LOCAL_REG_MGMT_CTRL_REG_E                        */
+    /* MGMT_CTRL_REG_E                        */
     { 0x08a801a8, 0x08a802f4, 0x025e82f4 },
-    /* XP_MGMT_TX_DMA0_CFG_REG_DMA0_CLR_ERR_CNT_REG_E           */
+    /* DMA0_CLR_ERR_CNT_REG_E           */
     { 0x08b51300, 0x08b51300, 0x0274c300 },
-    /* XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CHAIN_LEN_ERR_REG_E      */
+    /* DMA0_TX_CHAIN_LEN_ERR_REG_E      */
     { 0x08b51304, 0x08b51304, 0x0274c304 },
-    /* XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_CPU_OWN_DESC_ERR_REG_E   */
+    /* DMA0_TX_CPU_OWN_DESC_ERR_REG_E   */
     { 0x08b51308, 0x08b51308, 0x0274c308 },
-    /* XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_ZERO_BUF_LEN_ERR_REG_E   */
+    /* DMA0_TX_ZERO_BUF_LEN_ERR_REG_E   */
     { 0x08b5130c, 0x08b5130c, 0x0274c30c },
-    /* XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_PCIE_ERR_REG_E           */
+    /* DMA0_TX_PCIE_ERR_REG_E           */
     { 0x08b51310, 0x08b51310, 0x0274c310 },
-    /* XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_DMA_INTF_ERR_REG_E       */
+    /* DMA0_TX_DMA_INTF_ERR_REG_E       */
     { 0x08b51314, 0x08b51314, 0x0274c314 },
-    /* XP_MGMT_TX_DMA0_CFG_REG_DMA0_TX_PKT_DROP_E               */
+    /* DMA0_TX_PKT_DROP_E               */
     { 0x08b51318, 0x08b51318, 0x0274c318 },
-    /* XP_MGMT_TX_DMA0_CFG_REG_XP_MGMT_TX_DMA0_CFG_REGLOCKREG_E */
+    /* TX_DMA0_CFG_REGLOCKREG_E */
     { 0x08b5131c, 0x08b51328, 0x0274c328 },
-    /* XP_MGMT_TX_DMA0_CFG_REG_SCRATCHPAD_E                     */
+    /* TX_DMA0_SCRATCHPAD_E                     */
     { 0x08b51320, 0x08b5132c, 0x0274c32c },
-    /* XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CHAIN_LEN_ERR_REG_E      */
+    /* DMA0_RX_CHAIN_LEN_ERR_REG_E      */
     { 0x08b51700, 0x08b51700, 0x02750300 },
-    /* XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_CPU_OWN_DESC_ERR_REG_E   */
+    /* DMA0_RX_CPU_OWN_DESC_ERR_REG_E   */
     { 0x08b51704, 0x08b51704, 0x02750304 },
-    /* XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_ZERO_BUF_LEN_ERR_REG_E   */
+    /* DMA0_RX_ZERO_BUF_LEN_ERR_REG_E   */
     { 0x08b51708, 0x08b51708, 0x02750308 },
-    /* XP_MGMT_RX_DMA0_CFG_REG_DMA0_RX_PCIE_ERR_REG_E           */
+    /* DMA0_RX_PCIE_ERR_REG_E           */
     { 0x08b5170c, 0x08b5170c, 0x0275030c },
-    /* XP_MGMT_RX_DMA0_CFG_REG_XP_MGMT_RX_DMA0_CFG_REGLOCKREG_E */
+    /* RX_DMA0_CFG_REGLOCKREG_E */
     { 0x08b51710, 0x08b5171c, 0x0275031c },
-    /* XP_MGMT_RX_DMA0_CFG_REG_SCRATCHPAD_E                     */
+    /* RX_DMA0_SCRATCHPAD_E                     */
     { 0x08b51714, 0x08b51720, 0x02750320 },
 };
 
@@ -419,7 +428,7 @@ static int xp_irq_mgmt_handler(xp_private_t *priv)
         spin_lock_irqsave(&priv->tx_dma_read_lock, flags);
         high_intr_src_reg[i] = 
             *((u32*)((uint8_t*)(priv->vma) + 
-            XP_GET_PCI_BASE_OFFSET_FROM_REG_NAME(XP_HIGH_INTR_SOURCE_REG_ADDR, 
+            XP_GET_PCI_BASE_OFFSET_FROM_REG_NAME(HIGH_INTR_SOURCE_REG_ADDR, 
                                                  priv->mode)) + i); 
         spin_unlock_irqrestore(&priv->tx_dma_read_lock, flags);
 
@@ -463,12 +472,12 @@ static int xp_irq_mgmt_handler(xp_private_t *priv)
             if (intr_info.q_type == RX_QUEUE) {
                 status_reg_addr = 
                     DMA0_RXDONE(XP_GET_PCI_BASE_OFFSET_FROM_REG_NAME(
-                       XP_DMA0_RXDONE_STATUS_REG, priv->mode), 
+                       DMA0_RXDONE_STATUS_REG, priv->mode), 
                                 intr_info.q_num);
             } else {
                 status_reg_addr = 
                     DMA0_TXDONE(XP_GET_PCI_BASE_OFFSET_FROM_REG_NAME(
-                       XP_DMA0_TXDONE_STATUS_REG, priv->mode), 
+                       DMA0_TXDONE_STATUS_REG, priv->mode), 
                                 intr_info.q_num);
             }
                         
@@ -499,7 +508,7 @@ static int xp_irq_mgmt_handler(xp_private_t *priv)
             queue_bit_map = 1 << j;
             xp_dev_reg_write(queue_bit_map, 
                              XP_GET_PCI_BASE_OFFSET_FROM_REG_NAME(
-                             XP_HIGH_INTR_SOURCE_REG_ADDR, priv->mode) + 
+                             HIGH_INTR_SOURCE_REG_ADDR, priv->mode) + 
                              (i * 4), 4, priv);
             break;
         }
@@ -524,7 +533,7 @@ static irqreturn_t xp_msi_irq_handler_high(int irq, void *data)
         spin_lock_irqsave(&priv->tx_dma_read_lock, flags);
 
         reg_value[i] = *((u32*)((uint8_t*)(priv->vma) + 
-            XP_GET_PCI_BASE_OFFSET_FROM_REG_NAME(XP_HIGH_PRIO_REG_ADDR, 
+            XP_GET_PCI_BASE_OFFSET_FROM_REG_NAME(HIGH_PRIO_REG_ADDR, 
                                                  priv->mode)) + i);
 
         spin_unlock_irqrestore(&priv->tx_dma_read_lock, flags);
@@ -573,7 +582,7 @@ static irqreturn_t xp_msi_irq_handler_low(int irq, void *data)
         spin_lock_irqsave(&priv->tx_dma_read_lock, flags);
 
         reg_value[i] = *((u32*)((uint8_t*)(priv->vma) + 
-            XP_GET_PCI_BASE_OFFSET_FROM_REG_NAME(XP_LOW_PRIO_REG_ADDR, 
+            XP_GET_PCI_BASE_OFFSET_FROM_REG_NAME(LOW_PRIO_REG_ADDR, 
                                                  priv->mode)) + i);
 
         spin_unlock_irqrestore(&priv->tx_dma_read_lock, flags);
@@ -1040,9 +1049,6 @@ static int xp_dev_mmap(struct file *filp, struct vm_area_struct *vma)
 
     pr_info("MMAP request from minor number : %d\n", MINOR(priv->cdev.dev));
 
-    /* We are using XP_MAX_IO_MEM macro here, because on 2.6.35 kernel,
-       we get 0 size of IO memory from pci_resource_start
-       and pci_resource_end functions. */
     if (vsize > XP_MAX_IO_MEM) {
         pr_err("Invalid size : Requested size %d is greater "
                "than available size %d\n", vsize, XP_MAX_IO_MEM);
@@ -1242,7 +1248,6 @@ static int xp_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
                 if (rc) {
                     pr_err("Failed to register MSI.\n");
                     rc = -ENODEV;
-                    /* TODO: It looks like here should be goto to the error. */
                 }
             } else {
                 pr_warn("Warning : Only High Priority MSI INTR is enabled.\n");
