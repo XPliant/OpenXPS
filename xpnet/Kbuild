@@ -1,0 +1,7 @@
+ccflags-y := -Wall -g -DDEBUG -I$(src)/include
+
+obj-m = xp80-Pcie-Endpoint.o
+xp80-Pcie-Endpoint-y := src/xp_netdev_core.o \
+                        src/xp_netdev_proc.o \
+                        src/xp_netdev_intf.o \
+                        src/xp_pcie_slave.o  \
