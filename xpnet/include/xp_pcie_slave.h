@@ -73,7 +73,7 @@ typedef struct xp_private {
     struct siginfo sig_info;
 
     /* Device type with mode(compress or uncompress). */
-    xp_mode_t mode;
+    xp_address_mode_t mode;
 } xp_private_t;
 
 #endif /* _XP_PCIE_SLAVE_H */

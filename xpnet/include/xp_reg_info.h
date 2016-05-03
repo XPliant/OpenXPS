@@ -40,12 +40,12 @@
 #define XP_GET_DMA_Q_REG_OFFSET(reg_offset, size, qnum) \
     reg_offset + (qnum * size * sizeof(u32));
 
-typedef enum xp_mode {
+typedef enum xp_address_mode {
     XP_A0_UNCOMPRESSED,
     XP_B0_UNCOMPRESSED,
     XP_B0_COMPRESSED,
     XP80_SUPPORTED_DEVICE_MODES
-} xp_mode_t;
+} xp_address_mode_t;
 
 typedef enum xp_register {
     HIGH_PRIO_REG_ADDR,

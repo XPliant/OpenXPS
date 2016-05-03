@@ -159,16 +159,43 @@ XP_STATUS xpsL3SetIntfIpv4UcRoutingEn(xpsDevice_t devId, xpsInterfaceId_t l3Intf
 XP_STATUS xpsL3SetIntfIpv6UcRoutingEn(xpsDevice_t devId, xpsInterfaceId_t l3IntfId, uint32_t enable);
 
 /**
+ * \brief This method enable/disable IPv4 Host Lookup.
+ *
+ * \param [in] devId
+ * \param [in] enable
+ *
+ * \return XP_STATUS
+ */
+
+XP_STATUS xpsL3SetIpv4HostLookupEnable(xpsDevice_t devId, uint32_t enable);
+
+/**
  * \brief Add a L3 Host Entry
  *
  * \param [in] devId Device Id of device.
  * \param [in] *pL3HostEntry Pointer to L3 Host entry structure.
- * \param [out] *entryHashIndex Index at which the FDB entry is written to hardware. 
+ * \param [out] *entryHashIndex Index at which the Host entry is written to hardware.
  * \param [out] *entryRehashIndex Index of entry which has been rehashed.
  *
  * \return XP_STATUS
  */
 XP_STATUS xpsL3AddIpHostEntry(xpsDevice_t devId, xpsL3HostEntry_t *pL3HostEntry, uint32_t *entryHashIndex, uint32_t *entryRehashIndex);
+
+/**
+ * \brief This method is used for classifying IP host (myIP)
+ *        control packets and assigning a unique reason code for
+ *        control plane policing (CoPP). It internally adds a L3
+ *        host entry. Reason Code is overloaded on the egressVif
+ *        in the host entry.
+ *
+ * \param [in] devId Device Id of device.
+ * \param [in] *pL3HostEntry Pointer to L3 Host entry structure.
+ * \param [out] *entryHashIndex Index at which the Host entry is written to hardware.
+ * \param [out] *entryRehashIndex Index of entry which has been rehashed.
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsL3AddIpHostControlEntry(xpsDevice_t devId, xpsL3HostEntry_t *pL3HostEntry, uint32_t *entryHashIndex, uint32_t *entryRehashIndex);
 
 /**
  * \brief Update a L3 Route Entry

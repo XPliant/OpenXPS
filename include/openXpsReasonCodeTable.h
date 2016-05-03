@@ -31,6 +31,8 @@
 #define XP_BRIDGE_MAC_SA_NEW                    11  ///< FDB MAC learning: New MAC SA indication
 #define XP_BRIDGE_MAC_SA_MOVE                   12  ///< FDB MAC learning: MAC SA has been moved indication
 
+#define XP_ROUTE_RC_NH_TABLE_HIT                60  ///< NextHope table hit indication
+
 #define XP_IVIF_RC_BPDU                         103 ///< BPDU
 
 #define XP_BRIDGE_RC_IVIF_ARPIGMPICMP_CMD       206 ///< ARP Broadcast Ingress VIF control

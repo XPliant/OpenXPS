@@ -332,7 +332,7 @@ typedef struct xpPortConfig_t
     uint32_t portState : 2;              ///< Port Spanning State configuration
     uint32_t setEgressPortFilter : 1;    ///< Control ro enable Egress Filtering ID assignment
     uint32_t macSAmissCmd : 2;           ///< Packet Command assignment for MAC SA miss       
-    uint32_t bumPolicerEn : 1;           ///< TODO: Control to enable
+    uint32_t bumPolicerEn : 1;           ///< Control to enable Policing of Broadcast, Unknown Unicast and Multicast packets
     uint32_t portACLEn : 1;              ///< Control to enable Ingress ACL Policy
     uint32_t portDebugEn : 1;            ///< Control to enable Debug Information Output  
     uint32_t portAclId : 8;              ///< Ingress ACL-ID assignment, if enabled

@@ -167,7 +167,8 @@ static int __xp_dev_reg_write(u32 rw_value, u32 reg_addr,
     return 0;
 }
 
-static void __xpnet_endian_swap32(u32 *base, u32 buf_size, xp_mode_t mode)
+static void __xpnet_endian_swap32(u32 *base, u32 buf_size, 
+                                        xp_address_mode_t mode)
 {
     uint16_t chr_num = 0;
 
@@ -1034,8 +1035,6 @@ static int __xpnet_enforce_skb_sanity(xpnet_private_t *net_priv,
     if ((net_priv->hw_flags & XPNET_HWFLAG_A0) == 0) {
         return XPNET_OK;
     }
-
-    /* Apply workarounds for h/w limitations. */
 
     /* Check if the skb address+len crosses 4k boundary
      * Since IOMMU is present, it happens only if skb->len > 4kB */

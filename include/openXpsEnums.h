@@ -522,15 +522,15 @@ typedef enum xpEventType
     TX_JABBER,                       ///< MAC Tx Packet Jabber Event
     TX_TIMESTAMPS_FIFO_OVER_FLOW,    ///< MAC Tx Timestamp Overlow error Event: Last Timestamp value is dropped
     TX_TIMESTAMPS_FIFO_AVAILABLE,    ///< MAC Tx Timestamp Fifo available Event: An indication that the Transmit Timestamp FIFO has data and is not empty
-    RX_LOCAL_FAULT,                  // TODO: interrupt available in B0
-    RX_REMOTE_FAULT,                 // TODO: interrupt available in B0
-    RX_CRC_ERROR,                    // TODO: interrupt available in B0
+    RX_LOCAL_FAULT,
+    RX_REMOTE_FAULT,
+    RX_CRC_ERROR,
     TX_BASE_PAGE_STARTED,            ///< Backplan Autonegotiation Event: DME base page transfer started   
     TX_NEXT_PAGE_STARTED,            ///< Backplan Autonegotiation Event: DME next page transfer started   
     RX_BASE_PAGE_STARTED,            ///< Backplan Autonegotiation Event: DME base page received   
     RX_NEXT_PAGE_STARTED,            ///< Backplan Autonegotiation Event: DME next page received   
     BPAN_COMPLETED,                  ///< Backplan Autonegotiation completion Event
-    BPAN_INT,                        // TODO: interrupt available in B0
+    BPAN_INT,
     /* RS/FC FEC interrupts */
     FEC_ALIGNMENT_MAKER_LOST_LANE0,  ///< FEC Alignment Marker error on lane 0 Event
     FEC_ALIGNMENT_MAKER_LOST_LANE1,  ///< FEC Alignment Marker error on lane 1 Event
@@ -539,26 +539,26 @@ typedef enum xpEventType
     FEC_UNCORRECTABLE_FRM,           ///< FEC Uncorrectable Frame error Event
     FEC_DESKEW_LOST,                 ///< FEC Deskew error Event
     FEC_BER_OVER_THRESHOLD,          ///< FEC High BER Event
-    FC_FEC_BLOCK_LOCK_GAINED,        // TODO: interrupt available in B0
-    FC_FEC_BLOCK_LOCK_LOST,          // TODO: interrupt available in B0
-    FC_FEC_BAD_CODEWORD,             // TODO: interrupt available in B0
-    FC_FEC_TOO_MANY_REQUESTED,       // TODO: interrupt available in B0
-    FC_FEC_UNCORRECTED_CODEWORD,     // TODO:
+    FC_FEC_BLOCK_LOCK_GAINED,
+    FC_FEC_BLOCK_LOCK_LOST,
+    FC_FEC_BAD_CODEWORD,
+    FC_FEC_TOO_MANY_REQUESTED,
+    FC_FEC_UNCORRECTED_CODEWORD,
 
     /* pcs interrupts event */
     /* High speed multi-channel pcs */
-    HSMCPCS_BLOCK_LOCK,              // TODO:
-    HSMCPCS_FAULT,                   // TODO:
-    HSMCPCS_TX_GEARBOX_FIFO_ERROR,   // TODO:
-    HSMCPCS_DECODER_TRAP,            // TODO:
-    HSMCPCS_DEBUG_DESKEW_OVERFLOW,   // TODO:
-    HSMCPCS_LOSS_OF_SYNC,            // TODO:
-    HSMCPCS_LOSS_OF_BLOCK_LOCK,      // TODO:
-    HSMCPCS_HIGH_BER_EVENT,          // TODO:
-    HSMCPCS_ERROR_BLOCK,             // TODO:
+    HSMCPCS_BLOCK_LOCK,
+    HSMCPCS_FAULT,
+    HSMCPCS_TX_GEARBOX_FIFO_ERROR,
+    HSMCPCS_DECODER_TRAP,
+    HSMCPCS_DEBUG_DESKEW_OVERFLOW,
+    HSMCPCS_LOSS_OF_SYNC,
+    HSMCPCS_LOSS_OF_BLOCK_LOCK,
+    HSMCPCS_HIGH_BER_EVENT,
+    HSMCPCS_ERROR_BLOCK,
 
     /* low speed multi-channel pcs */
-    LSMCPCS_AN_DONE                  // TODO:
+    LSMCPCS_AN_DONE
 }xpEventType;
 
 /**
@@ -857,7 +857,8 @@ typedef enum xpsInterfaceType_e
     XPS_PORT_ROUTER,           ///< Port Based Router
     XPS_VLAN_ROUTER,           ///< VLAN Based Router
     XPS_TUNNEL_ROUTER,         ///< Tunnel Based Router
-    XPS_VPN_ROUTER             ///< L3VPN Based Router
+    XPS_VPN_ROUTER,            ///< L3VPN Based Router
+    XPS_PORT_CONTROL_VIF       ///< Control Vif with ignore TRT bit set
 } xpsInterfaceType_e;
 
 
