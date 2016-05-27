@@ -42,9 +42,9 @@ extern "C" {
  */
 typedef struct xpsL3NextHopData_t
 {
-    xpsInterfaceId_t  l3InterfaceId;
+    xpsInterfaceId_t l3InterfaceId;
     macAddr_t macDa;
-    xpsInterfaceId_t  egressIntfId;
+    xpsInterfaceId_t egressIntfId;
 }xpsL3NextHopData_t;
 
 /**
@@ -54,12 +54,12 @@ typedef struct xpsL3NextHopData_t
  */
 typedef struct xpsL3NextHopEntry_t
 {
-    xpPktCmd_e      pktCmd;      ///< Packet forwarding processing command   
-    uint32_t   serviceInstId;    ///< A Service Instance ID to represent VNI/TNI/ISID for tunnelled packets
-    uint32_t    vpnLabel;        ///< VPN Label 
-    uint32_t    propTTL;         ///< TTL
-    xpsL3NextHopData_t  nextHop; ///< Next-Hop Data
-    uint32_t  reasonCode;        ///< Reason Code 
+    xpPktCmd_e pktCmd;          ///< Packet forwarding processing command   
+    uint32_t serviceInstId;     ///< A Service Instance ID to represent VNI/TNI/ISID for tunnelled packets
+    uint32_t vpnLabel;          ///< VPN Label 
+    uint32_t propTTL;           ///< TTL
+    xpsL3NextHopData_t nextHop; ///< Next-Hop Data
+    uint32_t reasonCode;        ///< Reason Code 
 }xpsL3NextHopEntry_t;
 
 /**

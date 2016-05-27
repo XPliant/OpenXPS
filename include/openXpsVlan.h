@@ -43,7 +43,7 @@ extern "C" {
 typedef struct
 {
     uint32_t              stpId;                   ///< Spanning Tree Protocol ID
-    xpsCountMode_e        countMode;               ///< ACM Count mode
+    xpsVlanCountMode_e    countMode;               ///< ACM Count mode
     uint32_t              enableMirror;            ///< Enable Mirroring
     uint32_t              mirrorAnalyzerId;        ///< Mirror Analyzer ID
     xpsPktCmd_e           saMissCmd;               ///< FDB MAC SA miss command
