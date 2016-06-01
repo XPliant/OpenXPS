@@ -30,7 +30,8 @@
 #define NUM_HP_INT_REG_BLOCKS        35
 #define NUM_LP_INT_REG_BLOCKS        33
 
-#define DMA0_INTR_START_BIT_POS      8
+#define DMA0_INTR_START_BIT_POS(addr_mode)  ((addr_mode) ? 9 : 8)
+
 #define DMA0_TXDONE(reg_addr, qnum)  (reg_addr + 16 * qnum)
 #define DMA0_RXDONE(reg_addr, qnum)  (reg_addr + 16 * qnum)
 
