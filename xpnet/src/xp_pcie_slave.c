@@ -1792,44 +1792,10 @@ int xp_packet_send(int dev, struct sk_buff *skb) {
     return 0;
 }
 
-int xp_diag_packet_send(int dev, uint8_t *pkt, int pkt_len,
-                            int ingress_port, int egress_port)
-{
-    struct sk_buff * skb;
-    uint8_t *skb_pkt;
-    xphTxHdr *tx_header;
-
-    skb = alloc_skb(pkt_len + sizeof(xphTxHdr) + 64, GFP_KERNEL);
-    if (! skb) {
-        printk("skb alloc failed\n");
-        return -1;
-    }
-    skb_reserve(skb, sizeof(xphTxHdr) + 32);
-    skb_pkt = skb_put(skb, pkt_len);
-    memcpy(skb_pkt, pkt, pkt_len);
-
-    tx_header = (xphTxHdr *)skb_push(skb, sizeof(xphTxHdr));
-    memset(tx_header, 0, sizeof(xphTxHdr));
-    tx_header->ingressVifLsbByte2 = (ingress_port >> 12) & 0xFF;
-    tx_header->ingressVifLsbByte1 = (ingress_port >> 4) & 0xFF;
-    tx_header->ingressVifLsbByte0 = ingress_port & 0xF;
-
-    tx_header->egressVifLsbByte2 = (egress_port >> 16) & 0xF;
-    tx_header->egressVifLsbByte1 = (egress_port >> 8) & 0xFF;
-    tx_header->egressVifLsbByte0 = egress_port & 0xFF;
-    tx_header->nextEngine = 0;
-    /*header size = (header in bytes) / 8 FROM_CPU_XPH_SIZE */
-    tx_header->headerSize = 3;
-    /*header type = 1 for CPU_TO_XP  FROM_CPU_XPH_TYPE*/
-    tx_header->headerType = 1;
-    return xp_packet_send(dev, skb);
-}
-
 EXPORT_SYMBOL(xp_pci_drv_write_reg);
 EXPORT_SYMBOL(xp_pci_drv_read_reg);
 EXPORT_SYMBOL(xp_get_reg_addr_by_id);
 EXPORT_SYMBOL(xp_packet_send);
-EXPORT_SYMBOL(xp_diag_packet_send);
 
 module_init(xp_module_init);
 module_exit(xp_module_exit);
