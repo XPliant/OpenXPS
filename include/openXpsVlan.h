@@ -222,6 +222,27 @@ XP_STATUS xpsVlanClearGlobalControlMac(xpsDevice_t devId, macAddr_t mac);
  */
 XP_STATUS xpsVlanSetOpenFlowEnable(xpsDevice_t devId, xpsVlan_t vlanId, xpsInterfaceId_t intfId, uint32_t enable);
 
+/**
+ * \brief This method sets a vlan instance to be default vlan
+ *          on all ports of a device.
+ *
+ * \param [in] devId
+ * \param [in] vlanId
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsVlanSetDefault (xpsDevice_t devId, xpsVlan_t vlanId);
+
+/**
+ * \brief This method returns the default vlan instance for a device.
+ *
+ * \param [in] devId
+ * \param [out] *vlanId
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsVlanGetDefault (xpsDevice_t devId, xpsVlan_t *vlanId);
+
 #ifdef __cplusplus
 }
 #endif
