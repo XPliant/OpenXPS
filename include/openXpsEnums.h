@@ -349,6 +349,17 @@ typedef enum xpVlanStgState_e
 } xpVlanStgState_e;
 
 /**
+ * \brief This type (enum) defines Count Mode.
+ */
+typedef enum xpBdCountMode_e
+{
+    BD_COUNT_MODE_NONE,                 ///< Counting is disabled
+    BD_COUNT_MODE_ROUTED_AND_SWITCHED,  ///< Count both switched and routed traffic
+    BD_COUNT_MODE_ONLY_ROUTED,          ///< Count only routed traffic
+    BD_COUNT_MODE_MAX
+} xpBdCountMode_e;
+
+/**
  * \brief This type (enum) defines IP type  
  *        used as IP Route Table Prefix lookup.
  *
@@ -664,12 +675,13 @@ typedef enum XP_PROFILE_TYPE_E
  */
 typedef enum xpSkuMode_e
 {
-    SKU_128X10          = 0 ,
-    SKU_32X40           = 1 ,
-    SKU_64X40           = 2 ,
-    SKU_32X100          = 3 ,
-    SKU_128X25          = 4 ,
-    SKU_64X50           = 5 ,
+    SKU_128X10          = 0,
+    SKU_32X40           = 1,
+    SKU_64X40           = 2,
+    SKU_32X100          = 3,
+    SKU_128X25          = 4,
+    SKU_64X50           = 5,
+    SKU_MODE_MAX        = 18
 } xpSkuMode_e;
 
 /**
@@ -891,6 +903,12 @@ typedef xpL2EncapType_e xpsL2EncapType_e;
  *        Bridging modes configurable for a VLAN.
  */
 typedef xpVlanBridgeMcMode_e xpsVlanBridgeMcMode_e;
+
+/**
+ * \brief This type (enum) defines the Count Mode
+ *        for a VLAN.
+ */
+typedef xpBdCountMode_e xpsVlanCountMode_e;
 
 /**
  * \brief This type (enum) defines the Spanning Tree States

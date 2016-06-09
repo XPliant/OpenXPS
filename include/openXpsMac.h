@@ -48,8 +48,7 @@ extern "C" {
  * \param [in] fecMode 
  * \param [in] enableFEC set to 1 to enable FEC
  *
- * \return [XP_STATUS]  On success XP_NO_ERR.
- *          On failure appropriate error code.
+ * \return XP_STATUS
 */
 XP_STATUS xpsMacPortGroupInit(xpsDevice_t devId, uint8_t macNum, xpMacConfigMode macConfig, xpSpeed speed, uint8_t initSerdes, uint8_t prbsTestMode, uint8_t firmwareUpload, xpFecMode fecMode, uint8_t enableFEC);
 
@@ -59,8 +58,7 @@ XP_STATUS xpsMacPortGroupInit(xpsDevice_t devId, uint8_t macNum, xpMacConfigMode
  * \param [in] devId device Id. Valid values are 0-63
  * \param [in] macNum       mac number. Valid values are 0 to 32.
  *
- * \return [XP_STATUS]  On success XP_NO_ERR.
- *          On failure appropriate error code.
+ * \return XP_STATUS
 */
 XP_STATUS xpsMacPortGroupDeInit(xpsDevice_t devId, uint8_t macNum);
 
@@ -87,7 +85,7 @@ XP_STATUS xpsMacSwitchMacConfigMode(xpsDevice_t devId, uint8_t macNum, xpMacConf
  * \param [in] portNum Port number. Valid values are 0 to 127 and 176.
  * \param [out] macConfigMode - mac mode
  *
- * \return XP_STATUS On success XP_NO_ERR
+ * \return XP_STATUS
  */
 XP_STATUS xpsMacConfigModeGet(xpDevice_t devId, uint8_t portNum, xpMacConfigMode *macConfigMode);
 

@@ -35,13 +35,23 @@
 #include "xp_pcie_slave.h"
 #include "xp_reg_info.h"
 
-#define XPNET_RX_NUM_QUEUES             (1)
+#define XPNET_NUM_QUEUES             	(64)
+#define XPNET_RX_NUM_QUEUES             (64)
 #define XPNET_RX_NUM_DESCS              (10)
-#define XPNET_TX_NUM_QUEUES             (1)
+#define XPNET_TX_NUM_QUEUES             (64)
 #define XPNET_TX_NUM_DESCS              (10)
 #define XPNET_MAX_DMA_SEGMENT_SIZE      (4 << 10)
 #define XPNET_DESC_SIZE                 (sizeof(xpnet_descriptor_t))
 #define XPNET_MAX_ATTEMPTS              (50)
+
+#define XPNET_PROC_FILE_NAME            "xpnet"
+#define XPNET_PROC_FILE_PATH            "/proc/" XPNET_PROC_FILE_NAME
+
+#define XPNET_PROC_STATS                "stats"
+#define XPNET_PROC_TRAP_TABLE           "trap-table"
+#define XPNET_PROC_DEBUG                "debug"
+#define XPNET_PROC_NETDEV               "net-dev"
+#define XPNET_PROC_TXHDR                "tx-hdr"
 
 #define XPNET_CEIL_LEN(len, align)\
 ({\
@@ -67,6 +77,14 @@
 ({\
     (q->xpq_num_desc - 1 - (xpnet_get_busy_desc(q)));\
 })
+
+#define NAME_STR_HELP    "help"     /*help string name macro*/
+#define NAME_STR_REG     "reg"      /*Reg string name macro*/
+#define NAME_STR_TRAP    "trap"     /*Trap string name macro*/
+#define NAME_STR_STAT    "stat"     /*Stat string name macro*/
+#define NAME_STR_DESC    "desc"     /*Desc string name macro*/
+#define NAME_STR_NETDEV  "net-dev"  /*net-dev string name macro*/
+#define NAME_STR_TXHDR   "tx-hdr"   /*tx-hdr string name macro*/
 
 typedef enum xpnet_enum {
     XPNET_OK = 0,
@@ -136,14 +154,25 @@ typedef struct xpnet_private {
     xpnet_queue_struct_t tx_queue[XPNET_RX_NUM_QUEUES];
     int num_rxqueues, num_txqueues; /* Number of queues enabled              */
 
-    struct proc_dir_entry *proc;    /* Debug and other info                  */
     int txqno, rxqno;               /* CPU RX and TX queue numbers.          */
-    int state;                      /* Being reset, up, down, etc            */
     spinlock_t priv_lock;           /* Lock for this private data structure  */
     int dma_trigger;                /* Lock for this private data structure  */
 
     struct net_device_stats stats;  /* Netdev structure for DMA statastic    */
+    int instance;                                             /* Instance number */
+    struct proc_dir_entry *proc_root;     		      /* PDE for root xpnet node  */
+    struct proc_dir_entry *proc_que[XPNET_RX_NUM_QUEUES];     /* PDE for all 64 queues */
+    struct proc_dir_entry *proc_stats;                        /* PDE for stats */
+    struct proc_dir_entry *proc_ttable;                       /* PDE for trap table */
+    struct proc_dir_entry *proc_debug;                             /* PDE for debug mode */
+    struct proc_dir_entry *proc_netdev;                             /* PDE for net dev */
+    struct proc_dir_entry *proc_txhdr;                             /* PDE for tx header*/
 } xpnet_private_t;
+
+typedef struct xpnet_que_info {
+    xpnet_private_t *priv;
+    int que_no;
+}xpnet_que_info_t;
 
 extern xpnet_private_t *g_net_priv;
 

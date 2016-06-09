@@ -31,6 +31,7 @@
 #define BYTE_SIZE   1
 #define WORD_SIZE   2
 #define DWORD_SIZE  4
+#define QWORD_SIZE  8
 
 #define ERR(...) printk(KERN_ERR "! "__VA_ARGS__)
 #define LOG(...) printk(KERN_INFO "! "__VA_ARGS__)

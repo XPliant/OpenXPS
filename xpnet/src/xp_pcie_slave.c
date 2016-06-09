@@ -28,10 +28,13 @@
 #include <linux/interrupt.h>
 #include <linux/version.h>
 #include <linux/pid_namespace.h>
+#include <linux/netdevice.h>
 
 #include "xp_common.h"
 #include "xp_reg_info.h"
 #include "xp_pcie_slave.h"
+#include "xp_header.h"
+#include "xp_netdev.h"
 
 #define VENDOR_ID             0x177D
 #define CNX88091_A0           0xF000
@@ -83,6 +86,9 @@
 #define RX_QUEUE              1
 #define TX_QUEUE              0
 
+#define XPREG_PROC_FILE_NAME "xpregaccess"
+#define XPREG_PROC_FILE_PATH "/proc/" XPREG_PROC_FILE_NAME
+
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,16,0)
 #define xp_pci_enable_msi_block(a,b) \
     pci_enable_msi_range(a,b,b)
@@ -96,24 +102,23 @@
 #define REGISTER_PID _IO(PCIE_IOCTL_ID, PCIE_REGISTER_ID)
 #define DEINIT_NETDEV _IO(PCIE_IOCTL_ID, NETDEV_DE_INIT_ID)
 
-#define PCIE_REG_CMD _IOWR(PCIE_IOCTL_ID, PCIE_REG_ID, xp_reg_rw_t *)
-#define PHY_MEM_FREE _IOWR(PCIE_IOCTL_ID, PHY_MEM_FREE_ID, xp_mem_user_t *)
-#define PHY_MEM_ALLOC _IOWR(PCIE_IOCTL_ID, PHY_MEM_ALLOC_ID, xp_mem_user_t *)
-#define GET_DRIVER_VERSION _IOWR(PCIE_IOCTL_ID, DRIVER_VERSION_ID, char *)
+#define PCIE_REG_CMD _IOWR(PCIE_IOCTL_ID, PCIE_REG_ID, uint64_t)
+#define PHY_MEM_FREE _IOWR(PCIE_IOCTL_ID, PHY_MEM_FREE_ID, uint64_t)
+#define PHY_MEM_ALLOC _IOWR(PCIE_IOCTL_ID, PHY_MEM_ALLOC_ID, uint64_t)
+#define GET_DRIVER_VERSION _IOWR(PCIE_IOCTL_ID, DRIVER_VERSION_ID, uint64_t)
 #define PCIE_CONFIG_READ_CMD _IOWR(PCIE_IOCTL_ID, PCIE_CONFIG_READ_ID,\
-                                   xp_pcie_config_t *)
+                                   uint64_t)
 
-typedef struct xp_mem_user {
-    u8 *addr;
-    u8 *paddr;
+typedef struct __attribute__((__packed__)) xp_mem_user {
+    u64 addr;
+    u64 paddr;
     u32 len;
     u32 offset;
-    struct page **page_list;
 } xp_mem_user_t;
 
-typedef struct xp_mem_info {
-    u8 *addr;
-    u8 *paddr;
+typedef struct __attribute__((__packed__)) xp_mem_info {
+    u64 addr;
+    u64 paddr;
     u32 len;
     u32 offset;
     struct list_head list;
@@ -143,20 +148,21 @@ typedef struct xp_intr_info {
 } xp_intr_info_t;
 
 /* Read PCIe config space */
-typedef struct xp_pcie_config {
+typedef struct __attribute__((__packed__)) xp_pcie_config {
     u16 offset; /* Pcie config space offset to read */
 
     /* Size to be read in bytes this
        should not be greater than 256 bytes */
     u8  size;
-    u8 *value;  /* Value(s) to be read */
+    u64 value;  /* Value(s) to be read */
 } xp_pcie_config_t;
 
 extern int xp_dev_reg_read(u32 *rw_value, u32 reg_addr, 
                            u8 reg_size, xp_private_t *priv);
 extern int xp_dev_reg_write(u32 rw_value, u32 reg_addr, 
                             u8 reg_size, xp_private_t *priv);
-
+extern netdev_tx_t xpnet_start_xmit(struct sk_buff *skb,
+                               xpnet_private_t *net_priv);
 extern int xp_netdev_init(xp_private_t *priv);
 extern void xp_netdev_deinit(xp_private_t *priv);
 
@@ -229,71 +235,204 @@ static u32 xp_reg_mask[33] = {
 };
 
 u32 xp_regs_list[XP_MAX_REG_ACCESS_LIST][XP80_SUPPORTED_DEVICE_MODES] =
-{ /* A0-Uncompressed, B0-Uncompressed, B0-Compressed            */
-    /* HIGH_PRIO_REG                                            */
+{   /* A0-Uncompressed, B0-Uncompressed, B0-Compressed  */
+    /* HIGH_PRIO_REG                                    */
     { 0x08a80080, 0x08a8019c, 0x025e819c },
-    /* LOW_PRIO_REG                                             */
+    /* LOW_PRIO_REG                                     */
     { 0x08a80090, 0x08a801ac, 0x025e81ac },
-    /* HIGH_INTR_SOURCE_REG                                     */
+    /* HIGH_INTR_SOURCE_REG                             */
     { 0x08a8018c, 0x08a802c4, 0x025e82c4 },
-    /* TXDONE_STATUS_REG                                        */
+    /* TXDONE_STATUS_REG                                */
     { 0x08b50000, 0x08b50000, 0x02744000 },
-    /* RXDONE_STATUS_REG                                        */
-    { 0x08b50800, 0x08b50800, 0x02744800 },
-    /* HIGE_PRIO_INT_ENABLE_REG                                 */
+    /* RXDONE_STATUS_REG                                */
+    { 0x08b50800, 0x08b50800, 0x02748000 },
+    /* HIGE_PRIO_INT_ENABLE_REG                         */
     {          0, 0x08a80180, 0x025e8180 },
-    /* LOW_PRIO_INT_ENABLE_REG                                  */
+    /* LOW_PRIO_INT_ENABLE_REG                          */
     {          0, 0x08a80190, 0x025e8190 },
-    /* DMA0_RX_CDP_REG_E                */
+    /* DMA0_RX_CDP_REG_E                                */
     { 0x08b51400, 0x08b51400, 0x02750000 },
-    /* DMA0_TX_CDP_REG_E                */
+    /* DMA0_TX_CDP_REG_E                                */
     { 0x08b51000, 0x08b51000, 0x0274c000 },
-    /* DMA0_RX_CMD_REG_E                */
+    /* DMA0_RX_CMD_REG_E                                */
     { 0x08b51600, 0x08b51600, 0x02750200 },
-    /* DMA0_TX_CMD_REG_E                */
+    /* DMA0_TX_CMD_REG_E                                */
     { 0x08b51200, 0x08b51200, 0x0274c200 },
-    /* CORE_CTRL_REG__1_E                     */
+    /* CORE_CTRL_REG__1_E                               */
     { 0x08a80168, 0x08a8028c, 0x025e828c },
-    /* TX_DMA0_RETRY_CNT_REG_E                */
+    /* TX_DMA0_RETRY_CNT_REG_E                          */
     { 0x08a802dc, 0x08a80444, 0x025e8444 },
-    /* MGMT_CTRL_REG_E                        */
+    /* MGMT_CTRL_REG_E                                  */
     { 0x08a801a8, 0x08a802f4, 0x025e82f4 },
-    /* DMA0_CLR_ERR_CNT_REG_E           */
+    /* DMA0_CLR_ERR_CNT_REG_E                           */
     { 0x08b51300, 0x08b51300, 0x0274c300 },
-    /* DMA0_TX_CHAIN_LEN_ERR_REG_E      */
+    /* DMA0_TX_CHAIN_LEN_ERR_REG_E                      */
     { 0x08b51304, 0x08b51304, 0x0274c304 },
-    /* DMA0_TX_CPU_OWN_DESC_ERR_REG_E   */
+    /* DMA0_TX_CPU_OWN_DESC_ERR_REG_E                   */
     { 0x08b51308, 0x08b51308, 0x0274c308 },
-    /* DMA0_TX_ZERO_BUF_LEN_ERR_REG_E   */
+    /* DMA0_TX_ZERO_BUF_LEN_ERR_REG_E                   */
     { 0x08b5130c, 0x08b5130c, 0x0274c30c },
-    /* DMA0_TX_PCIE_ERR_REG_E           */
+    /* DMA0_TX_PCIE_ERR_REG_E                           */
     { 0x08b51310, 0x08b51310, 0x0274c310 },
-    /* DMA0_TX_DMA_INTF_ERR_REG_E       */
+    /* DMA0_TX_DMA_INTF_ERR_REG_E                       */
     { 0x08b51314, 0x08b51314, 0x0274c314 },
-    /* DMA0_TX_PKT_DROP_E               */
+    /* DMA0_TX_PKT_DROP_E                               */
     { 0x08b51318, 0x08b51318, 0x0274c318 },
-    /* TX_DMA0_CFG_REGLOCKREG_E */
+    /* TX_DMA0_CFG_REGLOCKREG_E                         */
     { 0x08b5131c, 0x08b51328, 0x0274c328 },
-    /* TX_DMA0_SCRATCHPAD_E                     */
+    /* TX_DMA0_SCRATCHPAD_E                             */
     { 0x08b51320, 0x08b5132c, 0x0274c32c },
-    /* DMA0_RX_CHAIN_LEN_ERR_REG_E      */
+    /* DMA0_RX_CHAIN_LEN_ERR_REG_E                      */
     { 0x08b51700, 0x08b51700, 0x02750300 },
-    /* DMA0_RX_CPU_OWN_DESC_ERR_REG_E   */
+    /* DMA0_RX_CPU_OWN_DESC_ERR_REG_E                   */
     { 0x08b51704, 0x08b51704, 0x02750304 },
-    /* DMA0_RX_ZERO_BUF_LEN_ERR_REG_E   */
+    /* DMA0_RX_ZERO_BUF_LEN_ERR_REG_E                   */
     { 0x08b51708, 0x08b51708, 0x02750308 },
-    /* DMA0_RX_PCIE_ERR_REG_E           */
+    /* DMA0_RX_PCIE_ERR_REG_E                           */
     { 0x08b5170c, 0x08b5170c, 0x0275030c },
-    /* RX_DMA0_CFG_REGLOCKREG_E */
+    /* RX_DMA0_CFG_REGLOCKREG_E                         */
     { 0x08b51710, 0x08b5171c, 0x0275031c },
-    /* RX_DMA0_SCRATCHPAD_E                     */
+    /* RX_DMA0_SCRATCHPAD_E                             */
     { 0x08b51714, 0x08b51720, 0x02750320 },
 };
+
+#define MAX_DEV_SUPPORTED 8
+static xp_private_t *xp_pcie_dev_ptr[MAX_DEV_SUPPORTED];
 
 static int xp_driver_version_get(void __user *argp)
 {
     return copy_to_user(argp, DRIVER_VERSION, sizeof(DRIVER_VERSION));
 }
+
+static void reg_procfs_help(struct seq_file *sf, int minor)
+{
+   if(NULL == sf)
+      return;
+  
+   seq_printf(sf, "\nUsage: echo [OPTIONS] >%s%d; cat %s%d\n\n",
+                   XPREG_PROC_FILE_PATH, minor, XPREG_PROC_FILE_PATH, minor);
+   seq_printf(sf,"1) To read register value.\n"
+                 "\techo r <regoffset> >%s%d; cat %s%d"
+                 "\n\tex1: echo r 0x25e82f4 >%s%d; cat %s%d",
+                 XPREG_PROC_FILE_PATH, minor, XPREG_PROC_FILE_PATH, minor,
+                 XPREG_PROC_FILE_PATH, minor, XPREG_PROC_FILE_PATH, minor);
+   seq_printf(sf,"\n\n2) To write register value.\n"
+                 "\techo w <regoffset> <value> >%s%d; cat %s%d"
+                 "\n\tex1: echo w 0x25e82f4 0x12 >%s%d; cat %s%d",
+                 XPREG_PROC_FILE_PATH, minor, XPREG_PROC_FILE_PATH, minor,
+                 XPREG_PROC_FILE_PATH, minor, XPREG_PROC_FILE_PATH, minor);
+   seq_printf(sf,"\n\n3) To print help.\n"
+                 "\techo help >%s%d; cat %s%d\n",
+                 XPREG_PROC_FILE_PATH, minor, XPREG_PROC_FILE_PATH, minor);
+
+
+}
+
+static int xpreg_seq_show(struct seq_file *sf, void *v)
+{
+    xp_private_t *xp_reg_priv = NULL;
+    xp_reg_priv = sf->private;
+  
+    if (!strnicmp(xp_reg_priv->reg_rw_status, NAME_STR_HELP, sizeof(NAME_STR_HELP) - 1)) {
+       reg_procfs_help(sf, MINOR(xp_reg_priv->cdev.dev));
+    } else if(strlen(xp_reg_priv->reg_rw_status) < 1) {
+       seq_printf(sf, "Invalid input. Please find help as below..");
+       reg_procfs_help(sf, MINOR(xp_reg_priv->cdev.dev));
+    } else {
+       seq_printf(sf, "%s\n", xp_reg_priv->reg_rw_status);
+    }
+
+    return 0;
+}
+
+static int xpreg_seq_open(struct inode *inode, struct file *file)
+{
+    xp_private_t *xp_reg_priv = NULL;
+    struct seq_file *s;
+    int result;
+
+    result = single_open(file, xpreg_seq_show, NULL);
+
+    s = (struct seq_file *)file->private_data;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,0)
+    xp_reg_priv = PDE_DATA(file_inode(file));
+#else
+    xp_reg_priv = PROC_I(inode)->pde->data;
+#endif
+    s->private = xp_reg_priv;
+
+    return result;
+
+}
+
+static ssize_t xpreg_proc_write(struct file *filp, const char *buf,
+                                size_t bufsize, loff_t * off)
+{
+    u32 reg_index=0x0, reg_value=0x0;
+    xp_private_t *xp_reg_priv = NULL;
+    int rc;
+
+    if (bufsize != 0){
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,0)
+          xp_reg_priv = PDE_DATA(file_inode(filp));
+#else
+          struct dentry *dentry = filp->f_path.dentry;
+          struct inode *inode = dentry->d_inode;
+          xp_reg_priv = PROC_I(inode)->pde->data;
+#endif
+         memset(xp_reg_priv->reg_rw_status, 0, 
+                sizeof(xp_reg_priv->reg_rw_status));
+   
+         if (2 == sscanf(buf, "w 0x%x 0x%x", &reg_index, &reg_value)) {
+             rc = xp_dev_reg_write(reg_value,reg_index, DWORD_SIZE,
+                                  xp_reg_priv);
+             if (rc == -EINVAL) {
+                 snprintf(xp_reg_priv->reg_rw_status,
+                          sizeof(xp_reg_priv->reg_rw_status) - 1,
+                         "Register write failed\n");
+             } else {
+                 snprintf(xp_reg_priv->reg_rw_status, 
+                          sizeof(xp_reg_priv->reg_rw_status) - 1, 
+                         "Write register = 0x%x value = 0x%x\n",
+                          reg_index, reg_value);
+             }
+         } else if(1 == sscanf(buf, "r 0x%x", &reg_index)) {
+             rc = xp_dev_reg_read(&reg_value,reg_index, DWORD_SIZE,
+                                 xp_reg_priv);
+             if (rc == -EINVAL) {
+                 snprintf(xp_reg_priv->reg_rw_status,
+                          sizeof(xp_reg_priv->reg_rw_status) - 1,
+                         "Register read failed\n");
+             } else {
+                 snprintf(xp_reg_priv->reg_rw_status,
+                          sizeof(xp_reg_priv->reg_rw_status) - 1,
+                          "Read register = 0x%x value = 0x%x\n",reg_index,
+                          reg_value);
+             }
+        } else if(!strnicmp(buf, NAME_STR_HELP, sizeof(NAME_STR_HELP) - 1)) {
+                snprintf(xp_reg_priv->reg_rw_status,
+                         sizeof(xp_reg_priv->reg_rw_status) - 1,
+                         "%s", NAME_STR_HELP);
+        }
+    }
+    return bufsize;
+}
+
+static const struct file_operations xpreg_proc_fops = {
+	.owner = THIS_MODULE,
+	.open = xpreg_seq_open,
+	.read = seq_read,
+	.write = xpreg_proc_write,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+struct proc_dir_entry *xpreg_proc_create(const char *root,
+                   struct proc_dir_entry *parent, xp_private_t *data)
+{
+    return  proc_create_data(root, 0644, parent, &xpreg_proc_fops, data);
+}
+
 
 static u32 xp_block_number_get(u32 *reg_value, u32 start_bit, 
                                u32 end_bit, u8 bit_width)
@@ -342,9 +481,9 @@ static void xp_task_work_handler(struct work_struct *w)
         return;
     }
 
-    pr_info("Sending event with Interrupt Offset = %d\n", 
+    pr_debug("Sending event with Interrupt Offset = %d\n", 
             work->sig_info.si_int);
-    pr_info("Application Pid  = %d\n", work->app_pid);
+    pr_debug("Application Pid  = %d\n", work->app_pid);
 
     rcu_read_lock();
     task = pid_task(find_pid_ns(work->app_pid, &init_pid_ns), PIDTYPE_PID);
@@ -435,8 +574,7 @@ static int xp_irq_mgmt_handler(xp_private_t *priv)
         if (high_intr_src_reg[i]) {
             /* Get the queue number only if the bit in this register is set. */
             if (i == 0) {
-                /* dma0 RX/TX interrupt bit start from offset 8. */
-                j = DMA0_INTR_START_BIT_POS;
+                j = DMA0_INTR_START_BIT_POS(priv->mode);
             } else {
                 j = 0;
             }
@@ -454,15 +592,15 @@ static int xp_irq_mgmt_handler(xp_private_t *priv)
             /* Calculate bit position. */
             bit_pos = (i * 32) + j; 
 
-            if (bit_pos >= DMA0_INTR_START_BIT_POS && 
-                bit_pos < (TOTAL_RX_QUEUE + DMA0_INTR_START_BIT_POS)) {
-                intr_info.q_num = bit_pos - DMA0_INTR_START_BIT_POS;
+            if (bit_pos >= DMA0_INTR_START_BIT_POS(priv->mode) &&
+                bit_pos < (TOTAL_RX_QUEUE + DMA0_INTR_START_BIT_POS(priv->mode))) {
+                intr_info.q_num = bit_pos - DMA0_INTR_START_BIT_POS(priv->mode);
                 intr_info.q_type = RX_QUEUE;
-            } else if (bit_pos >= (TOTAL_TX_QUEUE + DMA0_INTR_START_BIT_POS) && 
-                       bit_pos < (DMA0_INTR_START_BIT_POS + 
+            } else if (bit_pos >= (TOTAL_TX_QUEUE + DMA0_INTR_START_BIT_POS(priv->mode)) &&
+                       bit_pos < (DMA0_INTR_START_BIT_POS(priv->mode) +
                                   TOTAL_RX_QUEUE + TOTAL_TX_QUEUE)) {
-                intr_info.q_num = bit_pos - 
-                    (TOTAL_TX_QUEUE + DMA0_INTR_START_BIT_POS);
+                intr_info.q_num = bit_pos -
+                    (TOTAL_TX_QUEUE + DMA0_INTR_START_BIT_POS(priv->mode));
                 intr_info.q_type = TX_QUEUE;
             }
 
@@ -482,7 +620,7 @@ static int xp_irq_mgmt_handler(xp_private_t *priv)
             }
                         
             spin_lock_irqsave(&priv->tx_dma_read_lock, flags);
-            intr_status = *(u8*)((uint8_t*)(priv->vma) + status_reg_addr);
+            intr_status = *(u32*)((uint8_t*)(priv->vma) + status_reg_addr);
             spin_unlock_irqrestore(&priv->tx_dma_read_lock, flags);
             intr_info.intr_status = intr_status;
 
@@ -525,7 +663,7 @@ static irqreturn_t xp_msi_irq_handler_high(int irq, void *data)
     unsigned long flags = 0;
     xp_private_t *priv = (xp_private_t *)data;
 
-    pr_info("XP80:%s:Interrupt handler at %d, "
+    pr_debug("XP80:%s:Interrupt handler at %d, "
             "irq: %d\n", __func__, __LINE__, irq);
 
     for (i = 0; i < XP_HP_INT_REG_SIZE_IN_DWRD; i++) {
@@ -574,7 +712,7 @@ static irqreturn_t xp_msi_irq_handler_low(int irq, void *data)
     unsigned long flags = 0;
     xp_private_t *priv = (xp_private_t *)data;
 
-    pr_info("XP80:%s:Interrupt handler at %d, "
+    pr_debug("XP80:%s:Interrupt handler at %d, "
             "irq: %d\n", __func__, __LINE__, irq);
 
     for (i = 0; i < XP_LP_INT_REG_SIZE_IN_DWRD; i++) {
@@ -664,20 +802,20 @@ static int xp_dma_mem_access(void __user *argp, xp_dma_private_t *priv)
 
     /* Linklist internal structure. */
     mem_info_list->offset = priv->mem_index;
-    mem_info_list->addr = (u8 *)mem;
+    mem_info_list->addr = (u64)(size_t)mem;
     mem_info_list->len = area;
-    mem_info_list->paddr = (u8 *)mem_dma;
+    mem_info_list->paddr = (u64)(size_t)mem_dma;
 
     /* User level structure. */
     user_mem->offset = priv->mem_index * PAGE_SIZE;
-    user_mem->addr = (u8 *)mem;
+    user_mem->addr = (u64)(size_t)mem;
     user_mem->len = area;
-    user_mem->paddr = (u8 *)mem_dma;
+    user_mem->paddr = (u64)(size_t)mem_dma;
 
     pr_info("mem_info_list->len : %d, mem_info_list->offset : %d,", 
             mem_info_list->len, mem_info_list->offset);
-    pr_info("mem_info_list->addr : %p\n", mem_info_list->addr);
-    pr_info("  Virtual Addr : %p,  Physical Addr : %p\n", 
+    pr_info("mem_info_list->addr : %llu\n", mem_info_list->addr);
+    pr_info("  Virtual Addr : %llu,  Physical Addr : %llu\n", 
             mem_info_list->addr, user_mem->paddr);
 
     INIT_LIST_HEAD(&mem_info_list->list);
@@ -685,7 +823,7 @@ static int xp_dma_mem_access(void __user *argp, xp_dma_private_t *priv)
 
     list_for_each_entry(entry, &xp_mem_list_head, list) {
         pr_info("index : %d entry->len : %d,", i, entry->len);
-        pr_info("entry->offset : %d entry->addr : %p\n", 
+        pr_info("entry->offset : %d entry->addr : %llu\n", 
                 entry->offset, entry->addr);
         i++;
     }
@@ -722,7 +860,7 @@ static int xp_dma_mem_free(void __user *argp, xp_dma_private_t *priv)
     list_for_each_entry_safe(entry, tmp_entry, &xp_mem_list_head, list) {
         if (entry->paddr == user_mem->paddr) {
             dma_free_coherent(priv->dev, entry->len, 
-                              entry->addr, (dma_addr_t)user_mem->paddr);
+                              (void*)entry->addr, (dma_addr_t)user_mem->paddr);
             list_del(&entry->list);
             kfree(entry);
             pr_debug("Freeing node.\n");
@@ -739,9 +877,9 @@ static int xp_dma_mem_cleanup(xp_dma_private_t *priv)
     xp_mem_list_t *entry = NULL, *tmp_entry = NULL;
 
     list_for_each_entry_safe(entry, tmp_entry, &xp_mem_list_head, list) {
-        pr_info("Freeing node : %p\n", entry->paddr);
+        pr_info("Freeing node : %llu\n", entry->paddr);
         dma_free_coherent(priv->dev, entry->len, 
-                          entry->addr, (dma_addr_t)entry->paddr);
+                          (void*)entry->addr, (dma_addr_t)entry->paddr);
         list_del(&entry->list);
         kfree(entry);
     }
@@ -793,11 +931,11 @@ static int xp_dma_mmap(struct file *filp, struct vm_area_struct *vma)
 
         if (entry->offset == vma->vm_pgoff) {
             pr_info("%s: entry->len : %d, entry->offset : %d, "
-                    "entry->addr =%p\n", __func__, 
+                    "entry->addr =%llu\n", __func__, 
                     entry->len, entry->offset, entry->addr);
 
             mem_len = entry->len;
-            usr_addr = entry->addr;
+            usr_addr = (char*)entry->addr;
             break;
         }
     }
@@ -867,6 +1005,7 @@ static struct file_operations xp_dma_fops = {
     .release    = xp_dma_close,
     .mmap       = xp_dma_mmap,
     .unlocked_ioctl = xp_dma_ioctl,
+    .compat_ioctl = xp_dma_ioctl,
 };
 
 static int xp_dev_reg_access(void __user *argp, xp_private_t *priv)
@@ -914,7 +1053,7 @@ static int xp_dev_reg_access(void __user *argp, xp_private_t *priv)
     }
 
     if (pci_rw->direction == SET_REG) {
-        if (copy_from_user(tmp_value, pci_rw->value, 
+        if (copy_from_user(tmp_value, (void*)pci_rw->value, 
                            pci_rw->count * reg_size)) {
             rc = -EFAULT;
             goto err_mem_tmp;
@@ -942,7 +1081,7 @@ static int xp_dev_reg_access(void __user *argp, xp_private_t *priv)
             reg_addr += reg_size;
         }
 
-        if (copy_to_user(pci_rw->value,
+        if (copy_to_user((void*)pci_rw->value,
                          tmp_alias, count * sizeof(u32)))
             rc = -EFAULT;
     } else {
@@ -1013,7 +1152,7 @@ static int xp_pci_conf_get(void __user *argp, xp_private_t *priv)
         offset++;
     }
 
-    if (copy_to_user(conf->value,
+    if (copy_to_user((void *)conf->value,
                      tmp_alias, count * sizeof(u8)))
         rc = -EFAULT;
 
@@ -1112,6 +1251,7 @@ static struct file_operations xp_dev_fops = {
     .release    = xp_dev_close,
     .mmap       = xp_dev_mmap,
     .unlocked_ioctl = xp_dev_ioctl,
+    .compat_ioctl = xp_dev_ioctl,
 };
 
 static int xp_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
@@ -1324,10 +1464,6 @@ static int xp_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
     pr_debug("Device : %s%u created with Major : %d and Minor: %u", 
              "xppcidev", minor, xp_pcidev_major, minor);
 
-    /* For each device there should be new workqueue instance. */
-    instance++;
-    minor++;
-
     priv->sig_info.si_signo = XP_RT_SIGNAL;
     priv->sig_info.si_errno = 0;
     priv->sig_info.si_code  = SI_QUEUE;
@@ -1338,6 +1474,22 @@ static int xp_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
     priv->xpnet = 0;
 
     spin_lock_init(&priv->tx_dma_read_lock);
+
+    memset(priv->proc_fs_name, 0, sizeof(priv->proc_fs_name));
+    snprintf(priv->proc_fs_name, sizeof(priv->proc_fs_name) - 1, "%s%u",
+             XPREG_PROC_FILE_NAME, minor);
+    priv->reg_proc = xpreg_proc_create(priv->proc_fs_name, NULL, priv);
+    if(NULL == priv->reg_proc){
+        pr_err("XP: xpreg_proc_create failed.\n");
+    }
+
+    if (minor < MAX_DEV_SUPPORTED) {
+        xp_pcie_dev_ptr[minor] = priv;
+    }
+
+    /* For each device there should be new workqueue instance. */
+    instance++;
+    minor++;
 
     pr_info("XP: Pcie Slave Probe successful.\n");
     return 0;
@@ -1373,6 +1525,7 @@ err_free_memory:
 static void xp_pci_remove(struct pci_dev *pdev)
 {
     xp_private_t *priv = pci_get_drvdata(pdev);
+    int minor =  MINOR(priv->cdev.dev);
 
     xp_netdev_deinit(priv);
     device_destroy(xp_pci_class, 
@@ -1399,11 +1552,23 @@ static void xp_pci_remove(struct pci_dev *pdev)
         destroy_workqueue(priv->w_queue);
     }
 
+    if(NULL != priv->reg_proc){
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,0)
+	    proc_remove(priv->reg_proc);
+#else
+	    remove_proc_entry(priv->proc_fs_name, NULL);
+#endif
+    }
+
     kfree(priv);
 
     /* PCIe disable device. */
     pci_disable_device(pdev);
     unregister_chrdev(xp_pcidev_major, DRIVER_NAME);
+
+    if (minor < MAX_DEV_SUPPORTED) {
+        xp_pcie_dev_ptr[minor] = NULL;
+    }
 
     pr_info("XP: Pci module remove successful.\n");
 }
@@ -1566,6 +1731,71 @@ static void __exit xp_module_exit(void)
 
     pr_info("XP80 PCIe Unregistered successful.\n");
 }
+
+s32 xp_pci_drv_write_reg(int dev, u32 rw_value,
+               u32 reg_addr, u8 reg_size)
+{
+    if (dev >= MAX_DEV_SUPPORTED) {
+        return -1;
+    }
+    if (NULL == xp_pcie_dev_ptr[dev]) {
+        return -1;
+    }
+    return xp_dev_reg_write(rw_value, reg_addr,
+                reg_size, xp_pcie_dev_ptr[dev]);
+}
+
+s32 xp_pci_drv_read_reg(int dev, u32 *rw_value,
+               u32 reg_addr, u8 reg_size)
+{
+    if (dev >= MAX_DEV_SUPPORTED) {
+        return -1;
+    }
+    if (NULL == xp_pcie_dev_ptr[dev]) {
+        return -1;
+    }
+
+    return xp_dev_reg_read(rw_value, reg_addr,
+            reg_size, xp_pcie_dev_ptr[dev]);
+}
+
+u32 xp_get_reg_addr_by_id(int dev, s32 reg_id) {
+    if (dev >= MAX_DEV_SUPPORTED) {
+        return -1;
+    }
+    if (NULL == xp_pcie_dev_ptr[dev]) {
+        return -1;
+    }
+
+    return XP_GET_PCI_BASE_OFFSET_FROM_REG_NAME(reg_id,
+            xp_pcie_dev_ptr[dev]->mode);
+}
+
+int xp_packet_send(int dev, struct sk_buff *skb) {
+    if (dev >= MAX_DEV_SUPPORTED) {
+        return -1;
+    }
+    if (NULL == xp_pcie_dev_ptr[dev]) {
+        return -1;
+    }
+    if (! xp_pcie_dev_ptr[dev]->xpnet) {
+        xp_netdev_init(xp_pcie_dev_ptr[dev]);
+    }
+    if (! xp_pcie_dev_ptr[dev]->xpnet) {
+        printk("Net probe error...\n");
+        return -1;
+    }
+    if (0 != xpnet_start_xmit(skb, xp_pcie_dev_ptr[dev]->xpnet)) {
+        printk("xmit failed DMA is busy...\n");
+        return -1;
+    }
+    return 0;
+}
+
+EXPORT_SYMBOL(xp_pci_drv_write_reg);
+EXPORT_SYMBOL(xp_pci_drv_read_reg);
+EXPORT_SYMBOL(xp_get_reg_addr_by_id);
+EXPORT_SYMBOL(xp_packet_send);
 
 module_init(xp_module_init);
 module_exit(xp_module_exit);

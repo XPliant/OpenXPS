@@ -41,7 +41,6 @@
 #include <linux/hashtable.h>
 
 #define XP_VIF_TO_HASH(x) (x)
-#define XP_RIF_TO_HASH(x) (x)
 
 #define XP_NO_VIF          -1
 #define XP_NO_RIF          -1
@@ -57,6 +56,9 @@
 
 #define XP_MIN_FP_INTF      0
 #define XP_MAX_FP_INTF      128
+
+#define XP_MIN_LAG_INTF     4096
+#define XP_MAX_LAG_INTF     5019
 
 #define XP_OFFSET_BD_INTF   65536
 #define XP_NUM_RP_INTF      16384
@@ -82,6 +84,12 @@ struct xp_pernet {
     struct sock *nlsk;
 };
 
+typedef enum xp_netdev_type {
+    XP_FP_NETDEV=0,
+    XP_ROUTER_NETDEV,
+    XP_LAG_NETDEV
+} xp_netdev_type;
+
 struct xp_netdev_priv {
     unsigned int knet_intf_id;
 
@@ -95,6 +103,7 @@ struct xp_netdev_priv {
     struct hlist_node hlist;
     struct net_device *netdev;
     unsigned int is_tx_header_set;
+    xp_netdev_type netdev_type;
 };
 
 struct xp_skb_info {
@@ -111,10 +120,8 @@ extern netdev_tx_t xpnet_start_xmit(struct sk_buff *skb,
 static LIST_HEAD(xp_netdev_list);
 static DEFINE_RWLOCK(xp_netdev_list_lock);
 
-/* Front panel ports table. */
-static DEFINE_HASHTABLE(xp_fp_netdev_htable, XP_HASH_BITS);
-/* Router ports table. */
-static DEFINE_HASHTABLE(xp_rp_netdev_htable, XP_HASH_BITS);
+/* Active netdev table. */
+static DEFINE_HASHTABLE(xp_active_netdev_htable, XP_HASH_BITS);
 
 /* Serialize requests from userspace. */
 static DEFINE_MUTEX(xp_netlink_mutex);
@@ -553,9 +560,9 @@ static int xp_nl_msg_if_link(struct net *netns, xp_nl_msg_link_t *link_msg)
                 (link_msg->vif < XP_MAX_FP_INTF)) {
                 LOG("Added netdev interface link, knet_id: %u, vif: %u\n", 
                     link_msg->knet_intf_id, link_msg->vif);
-
+                entry->netdev_type = XP_FP_NETDEV;
                 entry->vif = link_msg->vif;
-                hash_add(xp_fp_netdev_htable, 
+                hash_add(xp_active_netdev_htable, 
                          &entry->hlist, XP_VIF_TO_HASH(entry->vif));
             } else if ((XP_OFFSET_BD_INTF <= link_msg->rif) && 
                        (link_msg->rif < XP_MAX_BD_INTF)) {
@@ -563,8 +570,18 @@ static int xp_nl_msg_if_link(struct net *netns, xp_nl_msg_link_t *link_msg)
                     link_msg->knet_intf_id, link_msg->rif);
 
                 entry->rif = link_msg->rif;
-                hash_add(xp_rp_netdev_htable, 
-                         &entry->hlist, XP_RIF_TO_HASH(entry->rif));
+                entry->netdev_type = XP_ROUTER_NETDEV;
+                hash_add(xp_active_netdev_htable, 
+                         &entry->hlist, XP_VIF_TO_HASH(entry->rif));
+            } else if ((XP_MIN_LAG_INTF <= link_msg->vif) && 
+                       (link_msg->vif < XP_MAX_LAG_INTF)) {
+                LOG("Added netdev interface link, knet_id: %u, lag vif: %u\n", 
+                    link_msg->knet_intf_id, link_msg->vif);
+
+                entry->vif = link_msg->vif;
+                entry->netdev_type = XP_LAG_NETDEV;
+                hash_add(xp_active_netdev_htable, 
+                         &entry->hlist, XP_VIF_TO_HASH(entry->vif));
             } else {
                 ERR("Tried to link unknown type of interfaces, "
                     "knet_id: %u, vif: %u, rif: %u\n", 
@@ -852,13 +869,13 @@ static struct pernet_operations xp_net_ops = {
     .size = sizeof(struct xp_pernet),
 };
 
-static int __init xp_netlink_sock_init(void) 
+static int xp_netlink_sock_init(void) 
 { /* Sign up on network namespace notifications. */
     DBG("Enter: %s\n", __FUNCTION__);
     return register_pernet_subsys(&xp_net_ops);
 }
 
-static void __exit xp_netlink_sock_deinit(void) 
+static void xp_netlink_sock_deinit(void) 
 { /* Deregister network namespace notifications. */
     DBG("Enter: %s\n", __FUNCTION__);
     unregister_pernet_subsys(&xp_net_ops);
@@ -1002,9 +1019,12 @@ static void xp_rx_skb_netdev_process(struct xp_skb_info *skb_info)
        So, let's remove it. */
     skb_pull(skb_info->skb, sizeof(xphRxHdr));
 
-    if ((XP_MIN_FP_INTF <= skb_info->intf_id) && 
-        (skb_info->intf_id < XP_MAX_FP_INTF)) {
-        vif = skb_info->intf_id;
+    if (((XP_MIN_FP_INTF <= skb_info->intf_id) && 
+        (skb_info->intf_id < XP_MAX_FP_INTF)) ||
+
+        ((XP_MIN_LAG_INTF <= skb_info->intf_id) && 
+        (skb_info->intf_id < XP_MAX_LAG_INTF))) {
+            vif = skb_info->intf_id;
     } else if ((XP_MIN_FP_INTF <= skb_info->port_num) && 
                (skb_info->port_num < XP_MAX_FP_INTF)) {
         vif = skb_info->port_num;
@@ -1012,20 +1032,19 @@ static void xp_rx_skb_netdev_process(struct xp_skb_info *skb_info)
 
     if (XP_NO_VIF != vif) {
         read_lock(&xp_netdev_list_lock);
-        hash_for_each_possible(xp_fp_netdev_htable, 
+        hash_for_each_possible(xp_active_netdev_htable, 
                                entry, hlist, XP_VIF_TO_HASH(vif)) {
             if (entry->vif == vif) {
                 xp_rx_netdev_skb_netif_rx(skb_info->skb, entry->netdev);
                 break;
             }
         }
-
         read_unlock(&xp_netdev_list_lock);
     }
 
     read_lock(&xp_netdev_list_lock);
-    hash_for_each_possible(xp_rp_netdev_htable, 
-                           entry, hlist, XP_RIF_TO_HASH(rif)) {
+    hash_for_each_possible(xp_active_netdev_htable, 
+                           entry, hlist, XP_VIF_TO_HASH(rif)) {
         if (entry->rif == rif) {
             xp_rx_netdev_skb_netif_rx(skb_info->skb, entry->netdev);
             break;
@@ -1135,46 +1154,43 @@ void xp_debug_set(int mode)
     xp_debug = mode;
 }
 
-void xp_netdev_print(void)
+void xp_netdev_print(struct seq_file *sf)
 {
     unsigned int backet = 0;
     struct list_head *iter = NULL;
     struct xp_netdev_priv *entry = NULL;
+    char *ch_name[] = { "FP", "ROUTER", "LAG" };
 
     DBG("Enter: %s\n", __FUNCTION__);
-    LOG("Netdev interfaces:\n");
+    seq_printf(sf,"Netdev interfaces:\n");
+    seq_printf(sf, "----------------------------------------------------\n");
 
     read_lock(&xp_netdev_list_lock);
     list_for_each(iter, &xp_netdev_list) {
         entry = list_entry(iter, struct xp_netdev_priv, list);
-        LOG(" - Netdev: %8s, knet_id: %4u, vif/rif: %5d, tx header: %u\n", 
-            entry->netdev->name, entry->knet_intf_id, 
-            entry->vif, entry->is_tx_header_set);
+        seq_printf(sf," - Netdev: %8s, knet_id: %4u, vif/rif: %5d,"
+                        " tx header: %u\n", entry->netdev->name,
+                         entry->knet_intf_id, entry->vif,
+                         entry->is_tx_header_set);
     }
 
-    LOG("\nFP netdev linked interfaces:\n");
-    hash_for_each(xp_fp_netdev_htable, backet, entry, hlist) {
-        LOG(" - Netdev: %8s, knet_id: %4u, vif: %5d, tx header: %u\n", 
-            entry->netdev->name, entry->knet_intf_id, 
-            entry->vif, entry->is_tx_header_set);
+   seq_printf(sf,"\nActive netdev interfaces:\n");
+   seq_printf(sf,"----------------------------------------------------\n");
+    hash_for_each(xp_active_netdev_htable, backet, entry, hlist) {
+        seq_printf(sf," - Netdev: %8s, type: %s, knet_id: %4u, vif: %5d,"
+        " tx header: %u\n", entry->netdev->name, ch_name[entry->netdev_type],
+        entry->knet_intf_id, entry->vif, entry->is_tx_header_set);
     }
-
-    LOG("\nRP netdev linked interfaces:\n");
-    hash_for_each(xp_rp_netdev_htable, backet, entry, hlist) {
-        LOG(" - Netdev: %8s, knet_id: %4u, rif: %5d, tx header: %u\n", 
-            entry->netdev->name, entry->knet_intf_id, 
-            entry->rif, entry->is_tx_header_set);
-    }
-
     read_unlock(&xp_netdev_list_lock);
 }
 
-void xp_netdev_tx_header_print(unsigned int knet_intf_id)
+void xp_netdev_tx_header_print(unsigned int knet_intf_id, struct seq_file *sf)
 {
     struct list_head *iter = NULL;
 
     DBG("Enter: %s\n", __FUNCTION__);
-    LOG("Netdev interfaces:\n");
+    seq_printf(sf,"Netdev interfaces:\n");
+    seq_printf(sf,"----------------------------------------------------\n");
 
     read_lock(&xp_netdev_list_lock);
     list_for_each(iter, &xp_netdev_list) {
@@ -1182,10 +1198,10 @@ void xp_netdev_tx_header_print(unsigned int knet_intf_id)
             list_entry(iter, struct xp_netdev_priv, list);
 
         if (entry->is_tx_header_set) {
-            LOG(" - Netdev: %8s, knet_id: %4u, vif: %5d\n", 
+            seq_printf(sf," - Netdev: %8s, knet_id: %4u, vif: %5d\n", 
                 entry->netdev->name, entry->knet_intf_id, entry->vif);
 
-            LOG("     EVIF: B0(0x%2x) B1(0x%2x) B2(0x%2x); "
+            seq_printf(sf,"     EVIF: B0(0x%2x) B1(0x%2x) B2(0x%2x); "
                 "IVIF: B0(0x%2x) B1(0x%2x) B2(0x%2x); NextEngine: 0x%2x\n\n", 
                 entry->tx_header.egressVifLsbByte0, 
                 entry->tx_header.egressVifLsbByte1, 
@@ -1209,9 +1225,9 @@ int xp_trap_table_print(struct seq_file *sf)
 
     DBG("Enter: %s\n", __FUNCTION__);
 
-    seq_printf(sf, "|----------------------------------------------------|\n");
-    seq_printf(sf, "|TrapId| RC | Fd | Channel | SockPtr      | rxPktCnt |\n");
-    seq_printf(sf, "|----------------------------------------------------|\n");
+    seq_printf(sf,"|----------------------------------------------------|\n");
+    seq_printf(sf,"|TrapId| RC | Fd | Channel | SockPtr      | rxPktCnt |\n");
+    seq_printf(sf,"|----------------------------------------------------|\n");
 
     if (!trap_table) {
         return -EPERM;
@@ -1229,9 +1245,9 @@ int xp_trap_table_print(struct seq_file *sf)
         }
     }
 
-    seq_printf(sf, "|----------------------------------------------------|\n");
-    seq_printf(sf, "|SockPtr for CB channel is :%17p\n", cb_sock_ptr);
-    seq_printf(sf, "|----------------------------------------------------|\n");
+    seq_printf(sf,"|----------------------------------------------------|\n");
+    seq_printf(sf,"|SockPtr for CB channel is :%17p\n", cb_sock_ptr);
+    seq_printf(sf,"|----------------------------------------------------|\n");
 
     spin_unlock_irqrestore(&trap_table->lock, flags);
     return 0;

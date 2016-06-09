@@ -34,7 +34,6 @@
 #define XPNET_MAX_PACKET_SIZE           (16 << 10)
 #define XPNET_MIN_PACKET_SIZE           (60 + 24)
 #define XPNET_MAX_DMA_SIZE              (4 << 10)
-#define XPNET_PROC_FILE_NAME            "xpnet"
 
 /* RX descriptor and its required bit fields */
 #define XP_RX_DESCRIPTOR_BITOFF_ERRORINDICATION  (0)
@@ -53,12 +52,12 @@
 extern int xp_netdev_mode_init(void);
 extern int xp_netdev_mode_deinit(void);
 extern void xp_rx_skb_process(xpnet_private_t *priv, struct sk_buff *skb);
-extern struct proc_dir_entry *xpnet_proc_create(const char *root, 
-                                                struct proc_dir_entry *parent);
+extern int xpnet_proc_create(xpnet_private_t *net_priv);
 
 typedef int32_t (*reg_rw_func)(xpnet_private_t *, u32, u8, u32 *, u32);
 
 xpnet_private_t *g_net_priv;
+
 int jiffies_defer = 5;
 
 int xp_dev_reg_read(u32 *rw_value, u32 reg_addr, 
@@ -1286,7 +1285,6 @@ int xp_netdev_init(xp_private_t *priv)
     unsigned long flags = 0;
     xpnet_private_t *net_priv = NULL;
     static int instance;
-
     if (priv->xpnet){
         pr_err("xp_netdev_init already done.\n");
         return 0;
@@ -1327,7 +1325,12 @@ int xp_netdev_init(xp_private_t *priv)
     }
 
     INIT_DELAYED_WORK(&net_priv->dwork, xpnet_rxtx_handler);
-    net_priv->proc = xpnet_proc_create(XPNET_PROC_FILE_NAME, NULL);
+
+    net_priv->instance = instance;
+    rc = xpnet_proc_create(net_priv);
+    if (rc) {
+       pr_err("Error in xpnet_proc_create.\n");
+    }
     queue_delayed_work(net_priv->wqueue, &net_priv->dwork, HZ * 5);
     xpnet_rx_all_queues_start(net_priv);
 
@@ -1356,6 +1359,10 @@ err_netdev_fp_netdev:
 void xp_netdev_deinit(xp_private_t *priv)
 {
     xpnet_private_t *net_priv = priv->xpnet;
+    int count;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,10,0)
+    char queue_name[25];
+#endif 
 
     if (!net_priv) {
         pr_info("Nothing to remove.\n");
@@ -1370,11 +1377,50 @@ void xp_netdev_deinit(xp_private_t *priv)
     xpnet_rx_teardown(net_priv, XPNET_RX_NUM_QUEUES);
     destroy_workqueue(net_priv->wqueue);
 
-    if (net_priv->proc != NULL) {
+    for (count = 0; count < XPNET_NUM_QUEUES; count++) {
+        if (NULL != net_priv->proc_que[count]) {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,0)
-        proc_remove(net_priv->proc);
+            proc_remove(net_priv->proc_que[count]);
 #else
-        remove_proc_entry(XPNET_PROC_FILE_NAME, NULL);
+            memset(queue_name, 0, sizeof(queue_name));
+            snprintf(queue_name, sizeof(queue_name) - 1, "queue%d", count);
+            remove_proc_entry(queue_name, net_priv->proc_root);
+#endif
+       }
+    }
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,0)
+    if (NULL != net_priv->proc_stats) { 
+        proc_remove(net_priv->proc_stats);
+    }
+    if (NULL != net_priv->proc_ttable) {
+        proc_remove(net_priv->proc_ttable);
+    }
+    if (NULL != net_priv->proc_debug) {
+        proc_remove(net_priv->proc_debug);
+    }
+    if (NULL != net_priv->proc_netdev) {
+        proc_remove(net_priv->proc_netdev);
+    }
+    if (NULL != net_priv->proc_txhdr) {
+        proc_remove(net_priv->proc_txhdr);
+    }
+#else
+    remove_proc_entry(XPNET_PROC_STATS, net_priv->proc_root);
+    remove_proc_entry(XPNET_PROC_TRAP_TABLE, net_priv->proc_root);
+    remove_proc_entry(XPNET_PROC_DEBUG, net_priv->proc_root);
+    remove_proc_entry(XPNET_PROC_NETDEV, net_priv->proc_root);
+    remove_proc_entry(XPNET_PROC_TXHDR, net_priv->proc_root);
+#endif
+ 
+    if (NULL != net_priv->proc_root) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,0)
+        proc_remove(net_priv->proc_root);
+#else
+        memset(queue_name, 0, sizeof(queue_name));
+        snprintf(queue_name, sizeof(queue_name) - 1, "xpnet_%d", 
+                 net_priv->instance);
+        remove_proc_entry(queue_name, NULL);
 #endif
     }
 

@@ -28,8 +28,11 @@
 #include "xp_reg_info.h"
 #include <linux/cdev.h>
 
+#define PROC_FS_NAME_SIZE 50
+#define REG_RW_STATUS_SIZE 200
+ 
 /* Register Read/Write */
-typedef struct xp_reg_rw {
+typedef struct __attribute__((__packed__)) xp_reg_rw {
     u32 reg_address;  /* Address to read/write */
 
     /* If count > 1, contiguous access of registers
@@ -45,7 +48,7 @@ typedef struct xp_reg_rw {
     u8  size;
 
     /* Value(s) to be written/read */
-    u8 *value;
+    u64 value;
 } xp_reg_rw_t;
 
 typedef struct xp_private {
@@ -74,6 +77,13 @@ typedef struct xp_private {
 
     /* Device type with mode(compress or uncompress). */
     xp_address_mode_t mode;
+
+    /* For storing PDE entry */
+    struct proc_dir_entry *reg_proc;
+    /* For storing PDE name */
+    char proc_fs_name[PROC_FS_NAME_SIZE];
+    /* For storing reg read/write status */
+    char reg_rw_status[REG_RW_STATUS_SIZE];
 } xp_private_t;
 
 #endif /* _XP_PCIE_SLAVE_H */

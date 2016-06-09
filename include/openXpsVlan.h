@@ -43,7 +43,7 @@ extern "C" {
 typedef struct
 {
     uint32_t              stpId;                   ///< Spanning Tree Protocol ID
-    xpsCountMode_e        countMode;               ///< ACM Count mode
+    xpsVlanCountMode_e    countMode;               ///< ACM Count mode
     uint32_t              enableMirror;            ///< Enable Mirroring
     uint32_t              mirrorAnalyzerId;        ///< Mirror Analyzer ID
     xpsPktCmd_e           saMissCmd;               ///< FDB MAC SA miss command
@@ -221,6 +221,27 @@ XP_STATUS xpsVlanClearGlobalControlMac(xpsDevice_t devId, macAddr_t mac);
  * \return XP_STATUS
  */
 XP_STATUS xpsVlanSetOpenFlowEnable(xpsDevice_t devId, xpsVlan_t vlanId, xpsInterfaceId_t intfId, uint32_t enable);
+
+/**
+ * \brief This method sets a vlan instance to be default vlan
+ *          on all ports of a device.
+ *
+ * \param [in] devId
+ * \param [in] vlanId
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsVlanSetDefault (xpsDevice_t devId, xpsVlan_t vlanId);
+
+/**
+ * \brief This method returns the default vlan instance for a device.
+ *
+ * \param [in] devId
+ * \param [out] *vlanId
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsVlanGetDefault (xpsDevice_t devId, xpsVlan_t *vlanId);
 
 #ifdef __cplusplus
 }

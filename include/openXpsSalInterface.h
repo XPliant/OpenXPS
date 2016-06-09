@@ -43,13 +43,13 @@ extern "C" {
  *
  */
 
-void xpSetSalType(xpsSalType_e salType);
+void xpsSetSalType(xpsSalType_e salType);
 
 /**
  * \brief This method initializes the default SAL object.
  *
  */
-int xpSalDefaultInit(void);
+int xpsSalDefaultInit(void);
 
 #ifdef __cplusplus
 }
