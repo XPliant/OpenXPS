@@ -467,6 +467,17 @@ typedef enum txMode
 } txMode;
 
 /**
+ * \brief This type (enum) defines the table aging modes
+ */
+
+typedef enum XP_AGE_MODE_T
+{
+    XP_AGE_MODE_AUTO,
+    XP_AGE_MODE_TRIGGER,
+    XP_AGE_MODE_INVALID
+}XP_AGE_MODE_T;
+
+/**
  * \brief This type (enum) defines the Packet Driver 
  *        Rx handler types
  */
@@ -483,9 +494,9 @@ typedef enum xpCpuRxPktCbType
  */
 typedef enum xpFecMode
 {
-        RS_FEC_MODE,  ///< Reed-Solomon FEC
-        FC_FEC_MODE,  ///< Fire Code FEC
-        MAX_FEC_MODE
+    RS_FEC_MODE,  ///< Reed-Solomon FEC
+    FC_FEC_MODE,  ///< Fire Code FEC
+    MAX_FEC_MODE
 }xpFecMode;
 
 /**
@@ -665,7 +676,7 @@ typedef enum XP_PROFILE_TYPE_E
     XP_DEFAULT_TWO_PIPE_PROFILE             = 1,
     XP_ROUTE_CENTRIC_SINGLE_PIPE_PROFILE    = 2,
     XP_OPENFLOW_HYBRID_SINGLE_PIPE_PROFILE  = 3,
-    XP_MAX_PROFILE                          = 8
+    XP_MAX_PROFILE                          = 8 
 }XP_PROFILE_TYPE;
 
 /**
