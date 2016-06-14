@@ -185,6 +185,17 @@ XP_STATUS xpsFdbRegisterAgingHandler (xpsDevice_t devId, xpFdbAgingHandler fdbAg
 XP_STATUS xpsFdbUnregisterAgingHandler (xpsDevice_t devId);
 
 /**
+ * \brief Enable Aging on the FDB table
+ *
+ * \param [in] devId Device Id of device.
+ * \param [in] enable Enable/disable aging for the FDB table.
+ *
+ * \return XP_STATUS
+ *
+ */
+XP_STATUS xpsFdbConfigureTableAging (xpsDevice_t devId, uint32_t enable);
+
+/**
  * \brief  Display valid table entries in FDB table in the given range
  *
  * \param [in]  devId
