@@ -57,12 +57,12 @@ typedef enum xp_nl_msg {
 } xp_nl_msg_t;
 
 typedef struct xp_nl_msg_intf {
-    __u32 knet_intf_id;
+    __u32 xpnet_intf_id;
     __u8  intf_name[IFNAMSIZ];
 } xp_nl_msg_intf_t;
 
 typedef struct xp_nl_msg_link {
-    __u32 knet_intf_id;
+    __u32 xpnet_intf_id;
 
     union {
         __u32 vif;
@@ -71,7 +71,7 @@ typedef struct xp_nl_msg_link {
 } xp_nl_msg_link_t;
 
 typedef struct xp_nl_msg_tx_hdr {
-    __u32 knet_intf_id;
+    __u32 xpnet_intf_id;
     __u8  operation;
     __u8  tx_header[sizeof(xphTxHdr)];
 } xp_nl_msg_tx_hdr_t;
