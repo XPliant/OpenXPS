@@ -281,6 +281,63 @@ typedef enum xpPktCmd_e
     XP_PKTCMD_MAX
 } xpPktCmd_e;
 
+/**
+ * \brief This type (enum) defines the accepted frame types at ingress port
+ */
+typedef enum
+{
+    FRAMETYPE_ALL = 0,
+    FRAMETYPE_UN_PRI,
+    FRAMETYPE_TAG,
+    FRAMETYPE_MAX
+}xpsPortFrameType_e;
+
+/**
+ * \brief This type (enum) defines the port configuration parameters
+ */
+typedef enum xpsPortConfigFieldList_t
+{
+     XPS_PORT_FIELD_NUM_MIN,
+     XPS_PORT_DEFAULT_EXP,
+     XPS_PORT_DEFAULT_DSCP,
+     XPS_PORT_DEFAULT_DEI,
+     XPS_PORT_DEFAULT_PCP,
+     XPS_PORT_DEFAULT_DP,
+     XPS_PORT_DEFAULT_TC,
+     XPS_PORT_MPLS_QOS_EN,
+     XPS_POST_IP_QOS_EN,
+     XPS_PORT_LAYER2_QOS_EN,
+     XPS_PORT_EGRESS_FILTER_ID,
+     XPS_PORT_SET_INGRESS_VIF,
+     XPS_PORT_SET_BRIDGE_DOMAIN,
+     XPS_PORT_ACCEPTED_FRAME_TYPE,
+     XPS_PORT_BYPASS_TUNNEL_VIF,
+     XPS_PORT_BYPASS_ACLSPBR,
+     XPS_PORT_SAMPLER_EN,
+     XPS_PORT_POLICER_EN,
+     XPS_PORT_STATE,
+     XPS_PORT_SET_EGRESS_PORT_FILTER,
+     XPS_PORT_MAC_SAMISSCMD,
+     XPS_PORT_BUM_POLICER_EN,
+     XPS_PORT_ACL_EN,
+     XPS_PORT_DEBUG_EN,
+     XPS_PORT_ACL_ID,
+     XPS_PORT_PRIVATE_WIRE_EN,
+     XPS_PORT_ADD_PORT_BASED_TAG,
+     XPS_PORT_RESERVED2,
+     XPS_PORT_BRIDGE_DOMAIN,
+     XPS_PORT_EVIF,
+     XPS_PORT_MIRROR_BITMASK,
+     XPS_PORT_INGRESS_VIF,
+     XPS_PORT_PVID_MODE_ALLPKT,
+     XPS_PORT_PVID,
+     XPS_PORT_MPLS_QOS_PROFILE_IDX,
+     XPS_PORT_IP_QOS_PROFILE_IDX,
+     XPS_PORT_L2QOS_PROFILE_IDX,
+     XPS_PORT_ETAG_EXISTS,
+     XPS_PORT_FIELD_NUM_MAX
+} xpsPortConfigFieldList_t;
+
 
 /**
  * \typedef xpCountMode_e
@@ -676,7 +733,7 @@ typedef enum XP_PROFILE_TYPE_E
     XP_DEFAULT_TWO_PIPE_PROFILE             = 1,
     XP_ROUTE_CENTRIC_SINGLE_PIPE_PROFILE    = 2,
     XP_OPENFLOW_HYBRID_SINGLE_PIPE_PROFILE  = 3,
-    XP_MAX_PROFILE                          = 8 
+    XP_MAX_PROFILE                          = 8
 }XP_PROFILE_TYPE;
 
 /**
