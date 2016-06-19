@@ -46,6 +46,11 @@
 
 #define SUPPORTED_DEVICE_IDS  5
 
+#define BYTE_MASK   0xFFU
+#define WORD_MASK   0xFFFFU
+#define DWORD_MASK  0xFFFFFFFFU
+
+
 #define DRIVER_VERSION        "3.2.3"
 
 #define XP_PCI_MAX_ADAPTERS   255
@@ -157,14 +162,12 @@ typedef struct __attribute__((__packed__)) xp_pcie_config {
     u64 value;  /* Value(s) to be read */
 } xp_pcie_config_t;
 
-extern int xp_dev_reg_read(u32 *rw_value, u32 reg_addr, 
-                           u8 reg_size, xp_private_t *priv);
-extern int xp_dev_reg_write(u32 rw_value, u32 reg_addr, 
-                            u8 reg_size, xp_private_t *priv);
+#ifndef NO_NETDEV
 extern netdev_tx_t xpnet_start_xmit(struct sk_buff *skb,
                                xpnet_private_t *net_priv);
 extern int xp_netdev_init(xp_private_t *priv);
 extern void xp_netdev_deinit(xp_private_t *priv);
+#endif 
 
 /* User can override it via command line argument */
 static bool isr_enable = 1;
@@ -303,6 +306,83 @@ static int xp_driver_version_get(void __user *argp)
 {
     return copy_to_user(argp, DRIVER_VERSION, sizeof(DRIVER_VERSION));
 }
+
+int xp_dev_reg_read(u32 *rw_value, u32 reg_addr, 
+                    u8 reg_size, xp_private_t *priv)
+{
+    int rc = 0;
+    unsigned long flags = 0;
+
+    spin_lock_irqsave(&priv->tx_dma_read_lock, flags);
+
+    switch (reg_size) {
+        case BYTE_SIZE:
+            *rw_value = *((u8*)((uint8_t*)(priv->vma) + reg_addr));
+            /* pr_debug("rw_value = %x\n", *rw_value); */
+            break;
+
+        case WORD_SIZE:
+            *rw_value = *((u16*)((uint8_t*)(priv->vma) + reg_addr));
+            /* pr_debug("rw_value = %x\n", *rw_value); */
+            break;
+
+        case DWORD_SIZE:
+            *rw_value = *(u32*)((uint8_t*)(priv->vma) + reg_addr);
+            /* pr_debug("rw_value = %x,
+                        regoffset = 0x%x\n", *rw_value, reg_addr); */
+            /* pr_debug("%s:%d xpPrvPtr->vma = 0x%p reg_addr = %p\n",
+                        __func__, __LINE__, priv->vma ,
+                        ((uint8_t*)(priv->vma) + reg_addr)); */
+            break;
+
+        default:
+            pr_err("%s: Invalid register reg_size=%x\n", __func__, reg_size);
+            rc = -EINVAL;
+            break;
+    }
+
+    spin_unlock_irqrestore(&priv->tx_dma_read_lock, flags);
+    return rc;
+}
+
+int xp_dev_reg_write(u32 rw_value, u32 reg_addr, 
+                     u8 reg_size, xp_private_t *priv)
+{
+    int rc = 0;
+    u32 value = 0;
+    unsigned long flags = 0;
+
+    spin_lock_irqsave(&priv->tx_dma_read_lock, flags);
+
+    switch (reg_size) {
+        case BYTE_SIZE:
+            value = *(u32*)((uint8_t*)(priv->vma) + reg_addr);
+            *(u32*)((uint8_t*)(priv->vma) + reg_addr) = 
+                (value & ~BYTE_MASK ) | (rw_value & BYTE_MASK);
+            /* pr_debug("rw_value = 0x%x\n", rw_value & BYTE_MASK); */
+            break;
+
+        case WORD_SIZE:
+            value = *(u32*)((uint8_t*)(priv->vma) + reg_addr);
+            *(u32*)((uint8_t*)(priv->vma) + reg_addr) = 
+                (value & ~WORD_MASK) | (rw_value & WORD_MASK);
+            /* pr_debug("rw_value = 0x%x\n", rw_value & WORD_MASK); */
+            break;
+
+        case DWORD_SIZE:
+            *(u32*)((uint8_t*)(priv->vma) + reg_addr) = rw_value;
+            break;
+
+        default:
+            pr_err("%s: Invalid register rwSize = %x\n", __func__, reg_size);
+            rc = -EINVAL;
+            break;
+    }
+
+    spin_unlock_irqrestore(&priv->tx_dma_read_lock, flags);
+    return rc;
+}
+
 
 static void reg_procfs_help(struct seq_file *sf, int minor)
 {
@@ -965,6 +1045,7 @@ static long xp_dma_ioctl(struct file *filp,
     void __user *argp = (void __user *)arg;
     xp_dma_private_t *priv = filp->private_data;
     
+    /*pr_debug("%s:Enter\n", __func__);*/
     /* This command is not involved in any DMA operation so don't check 
      * coherent_dma_mask flag. */
     if (cmd == GET_DRIVER_VERSION) {
@@ -996,6 +1077,50 @@ static long xp_dma_ioctl(struct file *filp,
             return -EINVAL;
     }
 
+    /*pr_debug("%s:Exit\n", __func__);*/
+    return rc;
+}
+
+static long xp_dma_compat_ioctl(struct file *filp, 
+                         unsigned int cmd, unsigned long arg)
+{
+    long rc = 0;
+    void __user *argp = (void __user *)arg;
+    xp_dma_private_t *priv = filp->private_data;
+    
+    /*pr_debug("%s:Enter\n", __func__);*/
+    /* This command is not involved in any DMA operation so don't check 
+     * coherent_dma_mask flag. */
+    if (cmd == GET_DRIVER_VERSION) {
+        return xp_driver_version_get(argp);
+    } /* For all other commands check coherent_dma_mask flag. */ 
+    else if (!(priv->dev->coherent_dma_mask)) {
+        pr_err("Coherent_dma_mask is not set.\n");
+        return -ENODEV;
+    }
+
+    switch (cmd) {
+        case PHY_MEM_ALLOC:
+            pr_info("Physical memory allocation request.\n");
+            rc = xp_dma_mem_access(argp, priv);
+            break;
+
+        case PHY_MEM_FREE:
+            pr_info("Physical memory free request.\n");
+            rc = xp_dma_mem_free(argp, priv);
+            break;
+
+        case DMA_CLEAN_UP:
+            pr_info("DMA memory clean up request.\n");
+            rc = xp_dma_mem_cleanup(priv);
+            break;
+
+        default:
+            pr_err("XP DMA Invalid IOCTL command.\n");
+            return -EINVAL;
+    }
+
+    /*pr_debug("%s:Exit\n", __func__);*/
     return rc; 
 }
 
@@ -1005,7 +1130,7 @@ static struct file_operations xp_dma_fops = {
     .release    = xp_dma_close,
     .mmap       = xp_dma_mmap,
     .unlocked_ioctl = xp_dma_ioctl,
-    .compat_ioctl = xp_dma_ioctl,
+    .compat_ioctl = xp_dma_compat_ioctl,
 };
 
 static int xp_dev_reg_access(void __user *argp, xp_private_t *priv)
@@ -1211,6 +1336,7 @@ static long xp_dev_ioctl(struct file *filp,
     void __user *argp = (void __user *)arg;
     xp_private_t *priv = filp->private_data;
     
+    /*pr_debug("%s:Enter\n", __func__);*/
     switch (cmd) {
         case PCIE_REG_CMD:
             rc = xp_dev_reg_access(argp, priv);
@@ -1221,7 +1347,7 @@ static long xp_dev_ioctl(struct file *filp,
             priv->app_pid = current->pid;
             pr_debug("Registered Pid = %d\n", priv->app_pid);
             break;
-
+#ifndef NO_NETDEV
         case INIT_NETDEV:
             pr_info("Netdev init request.\n");
             rc = xp_netdev_init(priv);
@@ -1231,7 +1357,7 @@ static long xp_dev_ioctl(struct file *filp,
             pr_info("Netdev deinit request.\n");
             xp_netdev_deinit(priv);
             break;
-
+#endif
         case PCIE_CONFIG_READ_CMD:
             pr_info(KERN_INFO "Pcie config space read request.\n");
             rc = xp_pci_conf_get(argp, priv);
@@ -1242,8 +1368,53 @@ static long xp_dev_ioctl(struct file *filp,
             return -EINVAL;
     }
 
+    /*pr_debug("%s:Exit\n", __func__);*/
     return rc;
 }
+
+static long xp_dev_compat_ioctl(struct file *filp, 
+                         unsigned int cmd, unsigned long arg)
+{
+    long rc = 0;
+    void __user *argp = (void __user *)arg;
+    xp_private_t *priv = filp->private_data;
+    
+    /*pr_debug("%s:Enter\n", __func__);*/
+    switch (cmd) {
+        case PCIE_REG_CMD:
+            rc = xp_dev_reg_access(argp, priv);
+            break;
+
+        case REGISTER_PID:
+            priv->sig_info.si_pid = current->tgid;
+            priv->app_pid = current->pid;
+            pr_debug("Registered Pid = %d\n", priv->app_pid);
+            break;
+#ifndef NO_NETDEV
+        case INIT_NETDEV:
+            pr_info("Netdev init request.\n");
+            rc = xp_netdev_init(priv);
+            break;
+
+        case DEINIT_NETDEV:
+            pr_info("Netdev deinit request.\n");
+            xp_netdev_deinit(priv);
+            break;
+#endif
+        case PCIE_CONFIG_READ_CMD:
+            pr_info(KERN_INFO "Pcie config space read request.\n");
+            rc = xp_pci_conf_get(argp, priv);
+            break;
+
+        default:
+            pr_err("XP80 PCI Invalid IOCTL command.\n");
+            return -EINVAL;
+    }
+
+    /*pr_debug("%s:Exit\n", __func__);*/
+    return rc;
+}
+
 
 static struct file_operations xp_dev_fops = {
     .owner      = THIS_MODULE,
@@ -1251,7 +1422,7 @@ static struct file_operations xp_dev_fops = {
     .release    = xp_dev_close,
     .mmap       = xp_dev_mmap,
     .unlocked_ioctl = xp_dev_ioctl,
-    .compat_ioctl = xp_dev_ioctl,
+    .compat_ioctl = xp_dev_compat_ioctl,
 };
 
 static int xp_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
@@ -1527,7 +1698,9 @@ static void xp_pci_remove(struct pci_dev *pdev)
     xp_private_t *priv = pci_get_drvdata(pdev);
     int minor =  MINOR(priv->cdev.dev);
 
+#ifndef NO_NETDEV
     xp_netdev_deinit(priv);
+#endif
     device_destroy(xp_pci_class, 
                    MKDEV(xp_pcidev_major, MINOR(priv->cdev.dev)));
     cdev_del(&priv->cdev);
@@ -1771,6 +1944,7 @@ u32 xp_get_reg_addr_by_id(int dev, s32 reg_id) {
             xp_pcie_dev_ptr[dev]->mode);
 }
 
+#ifndef NO_NETDEV
 int xp_packet_send(int dev, struct sk_buff *skb) {
     if (dev >= MAX_DEV_SUPPORTED) {
         return -1;
@@ -1792,10 +1966,12 @@ int xp_packet_send(int dev, struct sk_buff *skb) {
     return 0;
 }
 
+EXPORT_SYMBOL(xp_packet_send);
+#endif
+
 EXPORT_SYMBOL(xp_pci_drv_write_reg);
 EXPORT_SYMBOL(xp_pci_drv_read_reg);
 EXPORT_SYMBOL(xp_get_reg_addr_by_id);
-EXPORT_SYMBOL(xp_packet_send);
 
 module_init(xp_module_init);
 module_exit(xp_module_exit);

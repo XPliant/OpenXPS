@@ -91,7 +91,7 @@ typedef enum xp_netdev_type {
 } xp_netdev_type;
 
 struct xp_netdev_priv {
-    unsigned int knet_intf_id;
+    unsigned int xpnet_intf_id;
 
     union {
         unsigned int vif;
@@ -301,7 +301,13 @@ static netdev_tx_t xp_ndo_start_xmit(struct sk_buff *skb,
     unsigned int headroom = skb_headroom(skb);
     struct sk_buff *new_skb = NULL;
     struct xp_netdev_priv *priv = NULL;
+    unsigned long flags = 0;
 
+   if (0 == g_net_priv->dma_trigger) {
+        printk("xp_ndo_start_xmit not to transmit.\n");
+        dev_kfree_skb_any(skb);
+        return NETDEV_TX_OK;
+    }
     if (!(dev->flags & IFF_UP)) {
         dev_kfree_skb_any(skb);
         return NETDEV_TX_OK;
@@ -321,18 +327,18 @@ static netdev_tx_t xp_ndo_start_xmit(struct sk_buff *skb,
         tx_header = (xphTxHdr *)skb_push(new_skb, tx_header_len);
 
         /* copy xp txheader. */
-        read_lock(&xp_netdev_list_lock);
+        read_lock_irqsave(&xp_netdev_list_lock, flags);
         memcpy(tx_header, &priv->tx_header, sizeof(xphTxHdr));
-        read_unlock(&xp_netdev_list_lock);
+        read_unlock_irqrestore(&xp_netdev_list_lock, flags);
 
         rc = xpnet_start_xmit(new_skb, g_net_priv);
     } else {
         tx_header = (xphTxHdr *)skb_push(skb, tx_header_len);
 
         /* copy xp txheader. */
-        read_lock(&xp_netdev_list_lock);
+        read_lock_irqsave(&xp_netdev_list_lock, flags);
         memcpy(tx_header, &priv->tx_header, sizeof(xphTxHdr));
-        read_unlock(&xp_netdev_list_lock);
+        read_unlock_irqrestore(&xp_netdev_list_lock, flags);
 
         rc = xpnet_start_xmit(skb, g_net_priv);
     }
@@ -383,15 +389,16 @@ static netdev_tx_t xp_ndo_start_xmit(struct sk_buff *skb,
 static int xp_ndo_set_mac_address(struct net_device *dev, void *p)
 {
     struct sockaddr *addr = p;
+    unsigned long flags = 0;
     DBG("Enter: %s\n", __FUNCTION__);
 
-    write_lock(&xp_netdev_list_lock);
+    write_lock_irqsave(&xp_netdev_list_lock, flags);
     memcpy(dev->dev_addr, addr->sa_data, dev->addr_len);
-    write_unlock(&xp_netdev_list_lock);
+    write_unlock_irqrestore(&xp_netdev_list_lock, flags);
 
     DBG("%s: changed MAC to %pM for interface %u\n", 
         dev->name, dev->dev_addr, 
-        ((struct xp_netdev_priv *)netdev_priv(dev))->knet_intf_id);
+        ((struct xp_netdev_priv *)netdev_priv(dev))->xpnet_intf_id);
     return 0;
 }
 
@@ -403,7 +410,11 @@ static struct net_device_ops xp_ndo = {
     .ndo_set_mac_address = xp_ndo_set_mac_address,
 }; 
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,15,0)
+static void xp_packet_send(struct sock *sk)
+#else
 static void xp_packet_send(struct sock *sk, int bytes)
+#endif
 {
     struct sk_buff *skb = skb_dequeue(&sk->sk_receive_queue);
 
@@ -420,22 +431,23 @@ static void xp_netdev_all_remove(void)
 {
     struct list_head *iter = NULL;
     struct list_head *iter_safe = NULL;
+    unsigned long flags = 0;
     DBG("Enter: %s\n", __FUNCTION__);
 
-    write_lock(&xp_netdev_list_lock);
+    write_lock_irqsave(&xp_netdev_list_lock, flags);
     list_for_each_safe(iter, iter_safe, &xp_netdev_list) {
         struct xp_netdev_priv *entry = 
             list_entry(iter, struct xp_netdev_priv, list);
 
-        LOG("Removed netdev interface, knet_id: %u\n", 
-            entry->knet_intf_id);
+        LOG("Removed netdev interface, xpnet_id: %u\n", 
+            entry->xpnet_intf_id);
 
         hash_del(&entry->hlist);
         list_del(&entry->list);
         unregister_netdev(entry->netdev);
         free_netdev(entry->netdev);
     }
-    write_unlock(&xp_netdev_list_lock);
+    write_unlock_irqrestore(&xp_netdev_list_lock, flags);
 }
 
 static void xp_netdev_setup(struct net_device *dev)
@@ -455,23 +467,24 @@ static int xp_nl_msg_if_create(struct net *netns, xp_nl_msg_intf_t *intf_msg)
     struct list_head *iter = NULL;
     struct net_device *netdev = NULL;
     struct xp_netdev_priv *priv = NULL;
+    unsigned long flags = 0;
     DBG("Enter: %s\n", __FUNCTION__);
 
-    write_lock(&xp_netdev_list_lock);
+    write_lock_irqsave(&xp_netdev_list_lock, flags);
     list_for_each(iter, &xp_netdev_list) {
         struct xp_netdev_priv *entry = 
             list_entry(iter, struct xp_netdev_priv, list);
 
-        if (entry->knet_intf_id == intf_msg->knet_intf_id) {
+        if (entry->xpnet_intf_id == intf_msg->xpnet_intf_id) {
             ERR("Specifed interface already exists, "
-                "intf name: %s, knet_id: %u\n", 
-                intf_msg->intf_name, intf_msg->knet_intf_id);
-            write_unlock(&xp_netdev_list_lock);
+                "intf name: %s, xpnet_id: %u\n", 
+                intf_msg->intf_name, intf_msg->xpnet_intf_id);
+            write_unlock_irqrestore(&xp_netdev_list_lock, flags);
             return 0;
         }
     }
 
-#if LINUX_VERSION_CODE <= KERNEL_VERSION(3,19,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,19,0)
     netdev = alloc_netdev(sizeof(struct xp_netdev_priv), 
                           intf_msg->intf_name, xp_netdev_setup);
 #else
@@ -485,41 +498,42 @@ static int xp_nl_msg_if_create(struct net *netns, xp_nl_msg_intf_t *intf_msg)
     priv = netdev_priv(netdev);
     memset(priv, 0x00, sizeof(struct xp_netdev_priv));
 
-    priv->knet_intf_id = intf_msg->knet_intf_id;
+    priv->xpnet_intf_id = intf_msg->xpnet_intf_id;
     priv->vif = XP_NO_VIF;
     priv->rif = XP_NO_RIF;
     priv->netdev = netdev;
     
     if (0 > register_netdev(netdev)) {
-        ERR("Could not register netdev, intf name: %s, knet_id: %u\n", 
-            intf_msg->intf_name, intf_msg->knet_intf_id);
+        ERR("Could not register netdev, intf name: %s, xpnet_id: %u\n", 
+            intf_msg->intf_name, intf_msg->xpnet_intf_id);
         free_netdev(netdev);
-        write_unlock(&xp_netdev_list_lock);
+        write_unlock_irqrestore(&xp_netdev_list_lock, flags);
         return -EPERM;
     }
 
     list_add(&priv->list, &xp_netdev_list);
 
-    LOG("Registered a new netdev, intf name: %s, knet_id: %u\n", 
-        intf_msg->intf_name, intf_msg->knet_intf_id);
+    LOG("Registered a new netdev, intf name: %s, xpnet_id: %u\n", 
+        intf_msg->intf_name, intf_msg->xpnet_intf_id);
 
-    write_unlock(&xp_netdev_list_lock);
+    write_unlock_irqrestore(&xp_netdev_list_lock, flags);
     return 0;
 }
 
 static int xp_nl_msg_if_delete(struct net *netns, xp_nl_msg_intf_t *intf_msg)
 {
     struct list_head *iter = NULL;
+    unsigned long flags = 0;
     DBG("Enter: %s\n", __FUNCTION__);
 
-    write_lock(&xp_netdev_list_lock);
+    write_lock_irqsave(&xp_netdev_list_lock, flags);
     list_for_each(iter, &xp_netdev_list) {
         struct xp_netdev_priv *entry = 
             list_entry(iter, struct xp_netdev_priv, list);
 
-        if (entry->knet_intf_id == intf_msg->knet_intf_id) {
-            LOG("Removed netdev interface, knet_id: %u\n", 
-                intf_msg->knet_intf_id);
+        if (entry->xpnet_intf_id == intf_msg->xpnet_intf_id) {
+            LOG("Removed netdev interface, xpnet_id: %u\n", 
+                intf_msg->xpnet_intf_id);
 
             hash_del(&entry->hlist);
             list_del(&entry->list);
@@ -529,45 +543,46 @@ static int xp_nl_msg_if_delete(struct net *netns, xp_nl_msg_intf_t *intf_msg)
         }
     }
 
-    ERR("Tried to remove interface but it wasn't found, knet_id: %u\n", 
-        intf_msg->knet_intf_id);
+    ERR("Tried to remove interface but it wasn't found, xpnet_id: %u\n", 
+        intf_msg->xpnet_intf_id);
 
 out:
-    write_unlock(&xp_netdev_list_lock);
+    write_unlock_irqrestore(&xp_netdev_list_lock, flags);
     return 0;
 }
 
 static int xp_nl_msg_if_link(struct net *netns, xp_nl_msg_link_t *link_msg)
 {
     struct list_head *iter = NULL;
+    unsigned long flags = 0;
     DBG("Enter: %s\n", __FUNCTION__);
 
-    write_lock(&xp_netdev_list_lock);
+    write_lock_irqsave(&xp_netdev_list_lock, flags);
     list_for_each(iter, &xp_netdev_list) {
         struct xp_netdev_priv *entry = 
             list_entry(iter, struct xp_netdev_priv, list);
 
-        if (entry->knet_intf_id == link_msg->knet_intf_id) {
+        if (entry->xpnet_intf_id == link_msg->xpnet_intf_id) {
 
             if ((XP_NO_VIF != entry->vif) || (XP_NO_RIF != entry->rif)) {
                 ERR("Tried to link interface which has "
-                    "been already linked, knet_id: %u, vif: %u, rif: %u\n",
-                    entry->knet_intf_id, entry->vif, entry->rif);
+                    "been already linked, xpnet_id: %u, vif: %u, rif: %u\n",
+                    entry->xpnet_intf_id, entry->vif, entry->rif);
                 break;
             }
 
             if ((XP_MIN_FP_INTF <= link_msg->vif) && 
                 (link_msg->vif < XP_MAX_FP_INTF)) {
-                LOG("Added netdev interface link, knet_id: %u, vif: %u\n", 
-                    link_msg->knet_intf_id, link_msg->vif);
+                LOG("Added netdev interface link, xpnet_id: %u, vif: %u\n", 
+                    link_msg->xpnet_intf_id, link_msg->vif);
                 entry->netdev_type = XP_FP_NETDEV;
                 entry->vif = link_msg->vif;
                 hash_add(xp_active_netdev_htable, 
                          &entry->hlist, XP_VIF_TO_HASH(entry->vif));
             } else if ((XP_OFFSET_BD_INTF <= link_msg->rif) && 
                        (link_msg->rif < XP_MAX_BD_INTF)) {
-                LOG("Added netdev interface link, knet_id: %u, rif: %u\n", 
-                    link_msg->knet_intf_id, link_msg->rif);
+                LOG("Added netdev interface link, xpnet_id: %u, rif: %u\n", 
+                    link_msg->xpnet_intf_id, link_msg->rif);
 
                 entry->rif = link_msg->rif;
                 entry->netdev_type = XP_ROUTER_NETDEV;
@@ -575,8 +590,8 @@ static int xp_nl_msg_if_link(struct net *netns, xp_nl_msg_link_t *link_msg)
                          &entry->hlist, XP_VIF_TO_HASH(entry->rif));
             } else if ((XP_MIN_LAG_INTF <= link_msg->vif) && 
                        (link_msg->vif < XP_MAX_LAG_INTF)) {
-                LOG("Added netdev interface link, knet_id: %u, lag vif: %u\n", 
-                    link_msg->knet_intf_id, link_msg->vif);
+                LOG("Added netdev interface link, xpnet_id: %u, lag vif: %u\n", 
+                    link_msg->xpnet_intf_id, link_msg->vif);
 
                 entry->vif = link_msg->vif;
                 entry->netdev_type = XP_LAG_NETDEV;
@@ -584,31 +599,32 @@ static int xp_nl_msg_if_link(struct net *netns, xp_nl_msg_link_t *link_msg)
                          &entry->hlist, XP_VIF_TO_HASH(entry->vif));
             } else {
                 ERR("Tried to link unknown type of interfaces, "
-                    "knet_id: %u, vif: %u, rif: %u\n", 
-                    link_msg->knet_intf_id, link_msg->vif, link_msg->rif);
+                    "xpnet_id: %u, vif: %u, rif: %u\n", 
+                    link_msg->xpnet_intf_id, link_msg->vif, link_msg->rif);
             }
 
             break;
         }
     }
 
-    write_unlock(&xp_netdev_list_lock);
+    write_unlock_irqrestore(&xp_netdev_list_lock, flags);
     return 0;
 }
 
 static int xp_nl_msg_if_unlink(struct net *netns, xp_nl_msg_link_t *link_msg)
 {
     struct list_head *iter = NULL;
+    unsigned long flags = 0;
     DBG("Enter: %s\n", __FUNCTION__);
 
-    write_lock(&xp_netdev_list_lock);
+    write_lock_irqsave(&xp_netdev_list_lock, flags);
     list_for_each(iter, &xp_netdev_list) {
         struct xp_netdev_priv *entry = 
             list_entry(iter, struct xp_netdev_priv, list);
 
-        if (entry->knet_intf_id == link_msg->knet_intf_id) {
-            LOG("Removed netdev interface link, knet_id: %u\n", 
-                link_msg->knet_intf_id);
+        if (entry->xpnet_intf_id == link_msg->xpnet_intf_id) {
+            LOG("Removed netdev interface link, xpnet_id: %u\n", 
+                link_msg->xpnet_intf_id);
 
             hash_del(&entry->hlist);
             entry->vif = XP_NO_VIF;
@@ -617,7 +633,7 @@ static int xp_nl_msg_if_unlink(struct net *netns, xp_nl_msg_link_t *link_msg)
         }
     }
 
-    write_unlock(&xp_netdev_list_lock);
+    write_unlock_irqrestore(&xp_netdev_list_lock, flags);
     return 0;
 }
 
@@ -625,23 +641,24 @@ static int xp_nl_msg_tx_header(struct net *netns,
                                xp_nl_msg_tx_hdr_t *tx_header_msg)
 {
     struct list_head *iter = NULL;
+    unsigned long flags = 0;
     DBG("Enter: %s\n", __FUNCTION__);
 
-    write_lock(&xp_netdev_list_lock);
+    write_lock_irqsave(&xp_netdev_list_lock, flags);
     list_for_each(iter, &xp_netdev_list) {
         struct xp_netdev_priv *entry = 
             list_entry(iter, struct xp_netdev_priv, list);
 
-        if (entry->knet_intf_id == tx_header_msg->knet_intf_id) {
+        if (entry->xpnet_intf_id == tx_header_msg->xpnet_intf_id) {
             if (XP_NL_OPERATION_ADD == tx_header_msg->operation) {
-                LOG("Set TX header for netdev interface, knet_id: %u\n", 
-                    tx_header_msg->knet_intf_id);
+                LOG("Set TX header for netdev interface, xpnet_id: %u\n", 
+                    tx_header_msg->xpnet_intf_id);
                 memcpy(&entry->tx_header, 
                        &tx_header_msg->tx_header, sizeof(xphTxHdr));
                 entry->is_tx_header_set = 1;
             } else if (XP_NL_OPERATION_REMOVE == tx_header_msg->operation) {
-                LOG("Remove TX header for netdev interface, knet_id: %u\n", 
-                    tx_header_msg->knet_intf_id);
+                LOG("Remove TX header for netdev interface, xpnet_id: %u\n", 
+                    tx_header_msg->xpnet_intf_id);
                 memset(&entry->tx_header, 0x00, sizeof(xphTxHdr));
                 entry->is_tx_header_set = 0;
             }
@@ -650,7 +667,7 @@ static int xp_nl_msg_tx_header(struct net *netns,
         }
     }
 
-    write_unlock(&xp_netdev_list_lock);
+    write_unlock_irqrestore(&xp_netdev_list_lock, flags);
     return 0;
 }
 
@@ -993,12 +1010,19 @@ static void xp_rx_skb_fd_process(struct socket *sock,
         msg.msg_namelen = sizeof(to);
         msg.msg_control = NULL;
         msg.msg_controllen = 0;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0)
+        iov_iter_init(&msg.msg_iter, WRITE, &iov, 1, skb_info->skb->len);
+#else
         msg.msg_iov = &iov;
         msg.msg_iovlen = 1;
-
+#endif
         /* adjust memory boundaries */
         set_fs(KERNEL_DS);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,1,0)
         sock_sendmsg(sock, &msg, skb_info->skb->len);
+#else
+        sock_sendmsg(sock, &msg);
+#endif
         set_fs(old_fs);
 
         DBG("Queueing packet on inet->inet_sport fd: %d\n", inetp->inet_sport);
@@ -1010,6 +1034,7 @@ static void xp_rx_skb_netdev_process(struct xp_skb_info *skb_info)
     unsigned int vif = XP_NO_VIF;
     unsigned int rif = skb_info->rif_id;
     struct xp_netdev_priv *entry = NULL;
+    unsigned long flags = 0;
 
     if (packet_mirroring_enable) {
         xp_rx_skb_fd_process(cb_sock_ptr, skb_info);
@@ -1024,14 +1049,12 @@ static void xp_rx_skb_netdev_process(struct xp_skb_info *skb_info)
 
         ((XP_MIN_LAG_INTF <= skb_info->intf_id) && 
         (skb_info->intf_id < XP_MAX_LAG_INTF))) {
-            vif = skb_info->intf_id;
-    } else if ((XP_MIN_FP_INTF <= skb_info->port_num) && 
-               (skb_info->port_num < XP_MAX_FP_INTF)) {
+
         vif = skb_info->port_num;
     }
 
     if (XP_NO_VIF != vif) {
-        read_lock(&xp_netdev_list_lock);
+        read_lock_irqsave(&xp_netdev_list_lock, flags);
         hash_for_each_possible(xp_active_netdev_htable, 
                                entry, hlist, XP_VIF_TO_HASH(vif)) {
             if (entry->vif == vif) {
@@ -1039,10 +1062,10 @@ static void xp_rx_skb_netdev_process(struct xp_skb_info *skb_info)
                 break;
             }
         }
-        read_unlock(&xp_netdev_list_lock);
+        read_unlock_irqrestore(&xp_netdev_list_lock, flags);
     }
 
-    read_lock(&xp_netdev_list_lock);
+    read_lock_irqsave(&xp_netdev_list_lock, flags);
     hash_for_each_possible(xp_active_netdev_htable, 
                            entry, hlist, XP_VIF_TO_HASH(rif)) {
         if (entry->rif == rif) {
@@ -1051,7 +1074,7 @@ static void xp_rx_skb_netdev_process(struct xp_skb_info *skb_info)
         }
     }
 
-    read_unlock(&xp_netdev_list_lock);
+    read_unlock_irqrestore(&xp_netdev_list_lock, flags);
 }
 
 void xp_rx_skb_process(xpnet_private_t *priv, struct sk_buff *skb) 
@@ -1160,46 +1183,48 @@ void xp_netdev_print(struct seq_file *sf)
     struct list_head *iter = NULL;
     struct xp_netdev_priv *entry = NULL;
     char *ch_name[] = { "FP", "ROUTER", "LAG" };
+    unsigned long flags = 0;
 
     DBG("Enter: %s\n", __FUNCTION__);
     seq_printf(sf,"Netdev interfaces:\n");
     seq_printf(sf, "----------------------------------------------------\n");
 
-    read_lock(&xp_netdev_list_lock);
+    read_lock_irqsave(&xp_netdev_list_lock, flags);
     list_for_each(iter, &xp_netdev_list) {
         entry = list_entry(iter, struct xp_netdev_priv, list);
-        seq_printf(sf," - Netdev: %8s, knet_id: %4u, vif/rif: %5d,"
+        seq_printf(sf," - Netdev: %8s, xpnet_id: %4u, vif/rif: %5d,"
                         " tx header: %u\n", entry->netdev->name,
-                         entry->knet_intf_id, entry->vif,
+                         entry->xpnet_intf_id, entry->vif,
                          entry->is_tx_header_set);
     }
 
    seq_printf(sf,"\nActive netdev interfaces:\n");
    seq_printf(sf,"----------------------------------------------------\n");
     hash_for_each(xp_active_netdev_htable, backet, entry, hlist) {
-        seq_printf(sf," - Netdev: %8s, type: %s, knet_id: %4u, vif: %5d,"
+        seq_printf(sf," - Netdev: %8s, type: %s, xpnet_id: %4u, vif: %5d,"
         " tx header: %u\n", entry->netdev->name, ch_name[entry->netdev_type],
-        entry->knet_intf_id, entry->vif, entry->is_tx_header_set);
+        entry->xpnet_intf_id, entry->vif, entry->is_tx_header_set);
     }
-    read_unlock(&xp_netdev_list_lock);
+    read_unlock_irqrestore(&xp_netdev_list_lock, flags);
 }
 
-void xp_netdev_tx_header_print(unsigned int knet_intf_id, struct seq_file *sf)
+void xp_netdev_tx_header_print(unsigned int xpnet_intf_id, struct seq_file *sf)
 {
     struct list_head *iter = NULL;
+    unsigned long flags = 0;
 
     DBG("Enter: %s\n", __FUNCTION__);
     seq_printf(sf,"Netdev interfaces:\n");
     seq_printf(sf,"----------------------------------------------------\n");
 
-    read_lock(&xp_netdev_list_lock);
+    read_lock_irqsave(&xp_netdev_list_lock, flags);
     list_for_each(iter, &xp_netdev_list) {
         struct xp_netdev_priv *entry = 
             list_entry(iter, struct xp_netdev_priv, list);
 
         if (entry->is_tx_header_set) {
-            seq_printf(sf," - Netdev: %8s, knet_id: %4u, vif: %5d\n", 
-                entry->netdev->name, entry->knet_intf_id, entry->vif);
+            seq_printf(sf," - Netdev: %8s, xpnet_id: %4u, vif: %5d\n", 
+                entry->netdev->name, entry->xpnet_intf_id, entry->vif);
 
             seq_printf(sf,"     EVIF: B0(0x%2x) B1(0x%2x) B2(0x%2x); "
                 "IVIF: B0(0x%2x) B1(0x%2x) B2(0x%2x); NextEngine: 0x%2x\n\n", 
@@ -1213,7 +1238,7 @@ void xp_netdev_tx_header_print(unsigned int knet_intf_id, struct seq_file *sf)
         }
     }
 
-    read_unlock(&xp_netdev_list_lock);
+    read_unlock_irqrestore(&xp_netdev_list_lock, flags);
 }
 
 int xp_trap_table_print(struct seq_file *sf)

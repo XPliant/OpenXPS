@@ -39,7 +39,7 @@ xpnet_que_info_t g_net_que_info[XPNET_NUM_QUEUES];
 extern int xp_trap_table_print(struct seq_file *sf);
 extern void xp_debug_set(int mode);
 extern void xp_netdev_print(struct seq_file *sf);
-extern void xp_netdev_tx_header_print(unsigned int knet_intf_id,
+extern void xp_netdev_tx_header_print(unsigned int xpnet_intf_id,
                                       struct seq_file *sf);
 
 static int sprint_descriptor(char *buf, int bufsize, void *p, char *msg)

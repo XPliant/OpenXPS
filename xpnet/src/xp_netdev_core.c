@@ -24,10 +24,6 @@
 #include "xp_common.h"
 #include "xp_netdev.h"
 
-#define BYTE_MASK   0xFFU
-#define WORD_MASK   0xFFFFU
-#define DWORD_MASK  0xFFFFFFFFU
-
 #define READ_REG    1U
 #define WRITE_REG   0U
 
@@ -53,88 +49,16 @@ extern int xp_netdev_mode_init(void);
 extern int xp_netdev_mode_deinit(void);
 extern void xp_rx_skb_process(xpnet_private_t *priv, struct sk_buff *skb);
 extern int xpnet_proc_create(xpnet_private_t *net_priv);
+extern int xp_dev_reg_read(u32 *rw_value, u32 reg_addr, 
+                           u8 reg_size, xp_private_t *priv);
+extern int xp_dev_reg_write(u32 rw_value, u32 reg_addr, 
+                            u8 reg_size, xp_private_t *priv);
 
 typedef int32_t (*reg_rw_func)(xpnet_private_t *, u32, u8, u32 *, u32);
 
 xpnet_private_t *g_net_priv;
 
 int jiffies_defer = 5;
-
-int xp_dev_reg_read(u32 *rw_value, u32 reg_addr, 
-                    u8 reg_size, xp_private_t *priv)
-{
-    int rc = 0;
-    unsigned long flags = 0;
-
-    spin_lock_irqsave(&priv->tx_dma_read_lock, flags);
-
-    switch (reg_size) {
-        case BYTE_SIZE:
-            *rw_value = *((u8*)((uint8_t*)(priv->vma) + reg_addr));
-            /* pr_debug("rw_value = %x\n", *rw_value); */
-            break;
-
-        case WORD_SIZE:
-            *rw_value = *((u16*)((uint8_t*)(priv->vma) + reg_addr));
-            /* pr_debug("rw_value = %x\n", *rw_value); */
-            break;
-
-        case DWORD_SIZE:
-            *rw_value = *(u32*)((uint8_t*)(priv->vma) + reg_addr);
-            /* pr_debug("rw_value = %x,
-                        regoffset = 0x%x\n", *rw_value, reg_addr); */
-            /* pr_debug("%s:%d xpPrvPtr->vma = 0x%p reg_addr = %p\n",
-                        __func__, __LINE__, priv->vma ,
-                        ((uint8_t*)(priv->vma) + reg_addr)); */
-            break;
-
-        default:
-            pr_err("%s: Invalid register reg_size=%x\n", __func__, reg_size);
-            rc = -EINVAL;
-            break;
-    }
-
-    spin_unlock_irqrestore(&priv->tx_dma_read_lock, flags);
-    return rc;
-}
-
-int xp_dev_reg_write(u32 rw_value, u32 reg_addr, 
-                     u8 reg_size, xp_private_t *priv)
-{
-    int rc = 0;
-    u32 value = 0;
-    unsigned long flags = 0;
-
-    spin_lock_irqsave(&priv->tx_dma_read_lock, flags);
-
-    switch (reg_size) {
-        case BYTE_SIZE:
-            value = *(u32*)((uint8_t*)(priv->vma) + reg_addr);
-            *(u32*)((uint8_t*)(priv->vma) + reg_addr) = 
-                (value & ~BYTE_MASK ) | (rw_value & BYTE_MASK);
-            /* pr_debug("rw_value = 0x%x\n", rw_value & BYTE_MASK); */
-            break;
-
-        case WORD_SIZE:
-            value = *(u32*)((uint8_t*)(priv->vma) + reg_addr);
-            *(u32*)((uint8_t*)(priv->vma) + reg_addr) = 
-                (value & ~WORD_MASK) | (rw_value & WORD_MASK);
-            /* pr_debug("rw_value = 0x%x\n", rw_value & WORD_MASK); */
-            break;
-
-        case DWORD_SIZE:
-            *(u32*)((uint8_t*)(priv->vma) + reg_addr) = rw_value;
-            break;
-
-        default:
-            pr_err("%s: Invalid register rwSize = %x\n", __func__, reg_size);
-            rc = -EINVAL;
-            break;
-    }
-
-    spin_unlock_irqrestore(&priv->tx_dma_read_lock, flags);
-    return rc;
-}
 
 static int __xp_dev_reg_read(u32 *rw_value, u32 reg_addr, 
                              u8 reg_size, xp_private_t *priv)
@@ -1180,6 +1104,17 @@ static void xpnet_rxtx_handler(struct work_struct *w)
     queue_delayed_work(priv->wqueue, &priv->dwork, jiffies_defer);
 }
 
+static void xpnet_dma_trigger_handler(struct work_struct *w)
+{
+    xpnet_private_t *priv = container_of(w, xpnet_private_t, dwork_tx_trig.work);
+    unsigned long flags = 0;
+
+    spin_lock_irqsave(&priv->priv_lock, flags);
+    priv->dma_trigger = 1;
+    spin_unlock_irqrestore(&priv->priv_lock, flags);
+}
+
+
 static void xpnet_tx_complete(xpnet_private_t *net_priv, int qno, int maxiter)
 {
     xpnet_queue_struct_t *q = &net_priv->tx_queue[qno];
@@ -1325,6 +1260,7 @@ int xp_netdev_init(xp_private_t *priv)
     }
 
     INIT_DELAYED_WORK(&net_priv->dwork, xpnet_rxtx_handler);
+    INIT_DELAYED_WORK(&net_priv->dwork_tx_trig, xpnet_dma_trigger_handler);
 
     net_priv->instance = instance;
     rc = xpnet_proc_create(net_priv);
@@ -1332,12 +1268,13 @@ int xp_netdev_init(xp_private_t *priv)
        pr_err("Error in xpnet_proc_create.\n");
     }
     queue_delayed_work(net_priv->wqueue, &net_priv->dwork, HZ * 5);
+    queue_delayed_work(net_priv->wqueue, &net_priv->dwork_tx_trig, HZ * 100);
     xpnet_rx_all_queues_start(net_priv);
 
     /* Enable the DMA engine. */
     xpnet_program_mux_setdma(net_priv, 1);
     spin_lock_irqsave(&net_priv->priv_lock, flags);
-    net_priv->dma_trigger = 1;
+    net_priv->dma_trigger = 0;
     spin_unlock_irqrestore(&net_priv->priv_lock, flags);
 
     return 0;
