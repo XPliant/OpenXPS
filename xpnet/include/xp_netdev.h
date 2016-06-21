@@ -148,6 +148,7 @@ typedef struct xpnet_private {
     /* Host RX and host TX complete */
     struct workqueue_struct *wqueue;
     struct delayed_work dwork;
+    struct delayed_work dwork_tx_trig;
 
     /* RX descritpr ring for queues */
     xpnet_queue_struct_t rx_queue[XPNET_RX_NUM_QUEUES];

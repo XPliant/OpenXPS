@@ -111,7 +111,17 @@ XP_STATUS xpsMacGetMacNumForPortNum(xpsDevice_t devId, uint8_t portNum, uint8_t 
  *
  * \return XP_STATUS
  */
-XP_STATUS xpsMacPortSerdesTune(xpsDevice_t devId, xpPort_t *portList, uint32_t numOfPort, xpSerdesDfeTuneMode_t tuneMode, uint8_t force);
+XP_STATUS xpsMacPortSerdesTune(xpsDevice_t devId, xpsPort_t *portList, uint32_t numOfPort, xpSerdesDfeTuneMode_t tuneMode, uint8_t force);
+
+/**
+ * \brief Read port serder status and determine if it is ready for tuning
+ * *
+ * \param [in] devId device Id. Valid values are 0-63
+ * \param [in] portNum Port number. Valid values are 0 to 127.
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsMacPortSerdesTuneConditionGet(xpsDevice_t devId, xpsPort_t portNum);
 
 /**
  * \brief Check whether a specific port is initialized  
@@ -234,6 +244,22 @@ XP_STATUS xpsMacGetLinkStatus(xpsDevice_t devId, uint8_t portNum, uint8_t *statu
  */
 
 XP_STATUS xpsMacGetRxMaxFrmLen(xpsDevice_t devId, uint8_t portNum, uint16_t *frameSize);
+
+/**
+ * \public
+ * \brief To Override the serdes signal with serdesSignalVal which is going inside the port
+ * How it operate :
+ *  - In case of 100G,40G all four serdes will override
+ *  - In case of 50G, Two serdes per port will override
+ *  - In case of 10G,25G, Single serdes per port will override
+ *
+ * \param [in] devId device Id. Valid values are 0-63
+ * \param [in] portNum Port number. Valid values are 0-127
+ * \param [in] serdesSignalVal. 0: Normal operation 1: inverted (not available in A0) 2: serdes ok to 0 going to pcs 3: serdes to 1 going in pcs
+ *
+ * \return XP_STATUS On success XP_NO_ERR
+ */
+XP_STATUS xpsMacPortSerdesSignalOverride(xpDevice_t devId, uint8_t portNum, uint8_t serdesSignalVal);
 
 #ifdef __cplusplus
 }

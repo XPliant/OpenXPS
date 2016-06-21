@@ -57,6 +57,30 @@ XP_STATUS xpsPortGetCPUPortIntfId(xpsDevice_t devId, xpsInterfaceId_t *intfId);
 XP_STATUS xpsPortGetPortIntfId(xpsDevice_t devId, xpsPort_t portNum, xpsInterfaceId_t *intfId);
 
 /**
+ * \brief set fieldValue in port config
+ *
+ * \param [in] intfId
+ * \param [in] portIfId
+ * \param [in] fNum
+ * \param [in] fData
+ *
+ * \return int
+ */
+XP_STATUS xpsPortSetField(xpsDevice_t devId, xpsInterfaceId_t portIfId,xpsPortConfigFieldList_t fNum,uint32_t fData);
+
+/**
+ * \brief get fieldValue in port config
+ *
+ * \param [in] intfId
+ * \param [in] portIfId
+ * \param [in] fNum
+ * \param [in] fData
+ *
+ * \return int
+ */
+XP_STATUS xpsPortGetField(xpsDevice_t devId, xpsInterfaceId_t portIfId,xpsPortConfigFieldList_t fNum,uint32_t *fData);
+
+/**
  * \brief Set configurations for a specific port 
  *
  * \param [in] devId Device Id of device
@@ -90,6 +114,19 @@ XP_STATUS xpsPortGetConfig(xpsDevice_t devId, xpsInterfaceId_t portIfId, xpsPort
  * \return int
  */
 XP_STATUS xpsPortGetDevAndPortNumFromIntf(xpsInterfaceId_t intfId, xpsDevice_t *devId, xpsPort_t *portNum);
+
+/**
+ * \brief Get the port control interface id corresponding to the port
+ *
+ * Get the portControlIntfInfo i.e interfaceId and deviceNum
+ * \param [in] devId
+ * \param [in] portNum
+ * \param [out] * intfId
+ *
+ * \return int
+ */
+XP_STATUS xpsPortGetPortControlIntfId(xpsDevice_t devId, xpsPort_t portNum, xpsInterfaceId_t *intfId);
+
 
 #ifdef __cplusplus
 }

@@ -169,81 +169,81 @@ XP_STATUS xpsNlSockFreeBuf(uint8_t* nlBuf);
 XP_STATUS xpsNlSockSendMsg(uint8_t* nlBuf);
 
 /**
- * \brief xpsNetdevKnetIdAllocate returns knetId
+ * \brief xpsNetdevXpnetIdAllocate returns xpnetId
  *  
  * \param [in] devId: device Id. Valid values are 0-63 
- * \param [out] knetId: knet identificator
+ * \param [out] xpnetId: xpnet identificator
  *
  * \return [XP_STATUS]
  */
-XP_STATUS xpsNetdevKnetIdAllocate(xpsDevice_t devId, uint32_t *knetId);
+XP_STATUS xpsNetdevXpnetIdAllocate(xpsDevice_t devId, uint32_t *xpnetId);
 
 /**
- * \brief xpsNetdevKnetIdAllocateWith returns specified knetId
+ * \brief xpsNetdevXpnetIdAllocateWith returns specified xpnetId
  *  
  * \param [in] devId: device Id. Valid values are 0-63 
- * \param [in] knetId: knet identificator
+ * \param [in] xpnetId: xpnet identificator
  *
  * \return [XP_STATUS]
  */
-XP_STATUS xpsNetdevKnetIdAllocateWith(xpsDevice_t devId, uint32_t knetId);
+XP_STATUS xpsNetdevXpnetIdAllocateWith(xpsDevice_t devId, uint32_t xpnetId);
 
 /**
- * \brief xpsNetdevKnetIdFree frees knetId
+ * \brief xpsNetdevXpnetIdFree frees xpnetId
  *  
  * \param [in] devId: device Id. Valid values are 0-63 
- * \param [in] knetId: knet identificator
+ * \param [in] xpnetId: xpnet identificator
  *
  * \return [XP_STATUS]
  */
-XP_STATUS xpsNetdevKnetIdFree(xpsDevice_t devId, uint32_t knetId);
+XP_STATUS xpsNetdevXpnetIdFree(xpsDevice_t devId, uint32_t xpnetId);
 
 /**
  * \brief xpsNetdevIfCreate creates a netdev interface
  *  
  * \param [in] devId: device Id. Valid values are 0-63 
- * \param [in] knetId: knet identificator 
+ * \param [in] xpnetId: xpnet identificator 
  * \param [in] ifName: interface name
  *
  * \return [XP_STATUS]
  */
-XP_STATUS xpsNetdevIfCreate(xpsDevice_t devId, uint32_t knetId, char *ifName);
+XP_STATUS xpsNetdevIfCreate(xpsDevice_t devId, uint32_t xpnetId, char *ifName);
 
 /**
  * \brief xpsNetdevIfDelete deletes a netdev interface
  *  
  * \param [in] devId: device Id. Valid values are 0-63 
- * \param [in] knetId: knet identificator 
+ * \param [in] xpnetId: xpnet identificator 
  *
  * \return [XP_STATUS]
  */
-XP_STATUS xpsNetdevIfDelete(xpsDevice_t devId, uint32_t knetId);
+XP_STATUS xpsNetdevIfDelete(xpsDevice_t devId, uint32_t xpnetId);
 
 /**
  * \brief xpsNetdevIfLinkSet links/unlinks a netdev interface 
  *                           with xp interface
  *  
  * \param [in] devId: device Id. Valid values are 0-63
- * \param [in] knetId: knet identificator 
+ * \param [in] xpnetId: xpnet identificator 
  * \param [in] xpsIf: xps interface
  * \param [in] flag: link/unlink
  *
  * \return [XP_STATUS]
  */
-XP_STATUS xpsNetdevIfLinkSet(xpsDevice_t devId, uint32_t knetId, 
+XP_STATUS xpsNetdevIfLinkSet(xpsDevice_t devId, uint32_t xpnetId, 
                              xpsInterfaceId_t xpsIf, bool flag);
 
 /**
  * \brief xpsNetdevIfTxHeaderSet sets XP TX header
  *  
  * \param [in] devId: device Id. Valid values are 0-63 
- * \param [in] knetId: knet identificator 
+ * \param [in] xpnetId: xpnet identificator 
  * \param [in] xpsIf: xps interface
  * \param [in] flag: set/unset
  *
  * \return [XP_STATUS]
  */
-XP_STATUS xpsNetdevIfTxHeaderSet(xpsDevice_t devId, uint32_t knetId, 
+XP_STATUS xpsNetdevIfTxHeaderSet(xpsDevice_t devId, uint32_t xpnetId, 
                                  xpsInterfaceId_t xpsIf, bool flag);
 
 /**
