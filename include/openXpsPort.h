@@ -115,6 +115,19 @@ XP_STATUS xpsPortGetConfig(xpsDevice_t devId, xpsInterfaceId_t portIfId, xpsPort
  */
 XP_STATUS xpsPortGetDevAndPortNumFromIntf(xpsInterfaceId_t intfId, xpsDevice_t *devId, xpsPort_t *portNum);
 
+/**
+ * \brief Get the port control interface id corresponding to the port
+ *
+ * Get the portControlIntfInfo i.e interfaceId and deviceNum
+ * \param [in] devId
+ * \param [in] portNum
+ * \param [out] * intfId
+ *
+ * \return int
+ */
+XP_STATUS xpsPortGetPortControlIntfId(xpsDevice_t devId, xpsPort_t portNum, xpsInterfaceId_t *intfId);
+
+
 #ifdef __cplusplus
 }
 #endif
