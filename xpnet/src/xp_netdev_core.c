@@ -1309,6 +1309,7 @@ void xp_netdev_deinit(xp_private_t *priv)
     /* Flush and destroy workqueue. */
     xp_netdev_mode_deinit();
     cancel_delayed_work_sync(&net_priv->dwork);
+    cancel_delayed_work_sync(&net_priv->dwork_tx_trig);
     flush_workqueue(net_priv->wqueue);
     xpnet_tx_teardown(net_priv, XPNET_TX_NUM_QUEUES);
     xpnet_rx_teardown(net_priv, XPNET_RX_NUM_QUEUES);
