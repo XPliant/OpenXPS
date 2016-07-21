@@ -261,6 +261,16 @@ XP_STATUS xpsL3CreateRouteNextHop(uint32_t nhEcmpSize, uint32_t *nhId);
 XP_STATUS xpsL3SetRouteNextHop(xpsDevice_t devId, uint32_t nhId, xpsL3NextHopEntry_t *pL3NextHopEntry);
 
 /**
+ * \brief Clear the NextHop Entry for given Next-Hop ID in a device.
+ *
+ * \param [in] devId
+ * \param [in] nhId
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsL3ClearRouteNextHop(xpsDevice_t devId, uint32_t nhId);
+
+/**
  * \brief Free the allocated Next-Hop
  *
  * \param [in] nhId Next-Hop Id of device
