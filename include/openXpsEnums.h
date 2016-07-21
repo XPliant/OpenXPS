@@ -591,6 +591,7 @@ typedef enum xpSpeed
  */
 typedef enum xpEventType
 {
+    /* Common interrupts in A0 and B0 */
     LINK_UP = 0,                     ///< MAC Link Up Event     
     LINK_DOWN,                       ///< MAC Link Down Event     
     FAULT_DETECTED,                  ///< MAC Link Up Event     
@@ -601,15 +602,6 @@ typedef enum xpEventType
     TX_JABBER,                       ///< MAC Tx Packet Jabber Event
     TX_TIMESTAMPS_FIFO_OVER_FLOW,    ///< MAC Tx Timestamp Overlow error Event: Last Timestamp value is dropped
     TX_TIMESTAMPS_FIFO_AVAILABLE,    ///< MAC Tx Timestamp Fifo available Event: An indication that the Transmit Timestamp FIFO has data and is not empty
-    RX_LOCAL_FAULT,
-    RX_REMOTE_FAULT,
-    RX_CRC_ERROR,
-    TX_BASE_PAGE_STARTED,            ///< Backplan Autonegotiation Event: DME base page transfer started   
-    TX_NEXT_PAGE_STARTED,            ///< Backplan Autonegotiation Event: DME next page transfer started   
-    RX_BASE_PAGE_STARTED,            ///< Backplan Autonegotiation Event: DME base page received   
-    RX_NEXT_PAGE_STARTED,            ///< Backplan Autonegotiation Event: DME next page received   
-    BPAN_COMPLETED,                  ///< Backplan Autonegotiation completion Event
-    BPAN_INT,
     /* RS/FC FEC interrupts */
     FEC_ALIGNMENT_MAKER_LOST_LANE0,  ///< FEC Alignment Marker error on lane 0 Event
     FEC_ALIGNMENT_MAKER_LOST_LANE1,  ///< FEC Alignment Marker error on lane 1 Event
@@ -618,26 +610,47 @@ typedef enum xpEventType
     FEC_UNCORRECTABLE_FRM,           ///< FEC Uncorrectable Frame error Event
     FEC_DESKEW_LOST,                 ///< FEC Deskew error Event
     FEC_BER_OVER_THRESHOLD,          ///< FEC High BER Event
-    FC_FEC_BLOCK_LOCK_GAINED,
-    FC_FEC_BLOCK_LOCK_LOST,
-    FC_FEC_BAD_CODEWORD,
-    FC_FEC_TOO_MANY_REQUESTED,
-    FC_FEC_UNCORRECTED_CODEWORD,
-
     /* pcs interrupts event */
     /* High speed multi-channel pcs */
     HSMCPCS_BLOCK_LOCK,
     HSMCPCS_FAULT,
     HSMCPCS_TX_GEARBOX_FIFO_ERROR,
-    HSMCPCS_DECODER_TRAP,
     HSMCPCS_DEBUG_DESKEW_OVERFLOW,
+    UMAC_COMMON_INT_END,
+
+    /* A0 interrupts */
+    UMAC_A0_INT_START,
+    TX_BASE_PAGE_STARTED,
+    TX_NEXT_PAGE_STARTED,
+    RX_BASE_PAGE_STARTED,
+    RX_NEXT_PAGE_STARTED,
+    BPAN_COMPLETED,
+    UMAC_A0_INT_END,
+
+    /* B0 interrupts */
+    UMAC_B0_INT_START,
+    HSMCPCS_DECODER_TRAP,
     HSMCPCS_LOSS_OF_SYNC,
     HSMCPCS_LOSS_OF_BLOCK_LOCK,
     HSMCPCS_HIGH_BER_EVENT,
     HSMCPCS_ERROR_BLOCK,
+    LSMCPCS_AN_DONE,
+    FC_FEC_BLOCK_LOCK_GAINED,
+    FC_FEC_BLOCK_LOCK_LOST,
+    FC_FEC_UNCORRECTED_CODEWORD,
+    FC_FEC_BAD_CODEWORD,
+    FC_FEC_TOO_MANY_REQUESTED,
+    BPAN_INT,
+    TX_IDLE,                      ///< TX idle event
+    RX_FIFO_ERR,                  ///< Rx FIFO error interrupt
+    TX_FIFO_OVERFLOW_ERR,         ///< Rx FIFO overflow interrupt
+    TX_DCNT_VIOLATION_ERR,        ///< Tx DCNT violation error
+    TX_FIFO_SOF_EOF_VIOLATION_ERR, ///< Tx FIFO SOF/EOF protocol violation error
+    RX_LOCAL_FAULT,
+    RX_REMOTE_FAULT,
+    RX_CRC_ERROR,
+    UMAC_B0_INT_END
 
-    /* low speed multi-channel pcs */
-    LSMCPCS_AN_DONE
 }xpEventType;
 
 /**

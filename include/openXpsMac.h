@@ -36,21 +36,42 @@ extern "C" {
 #endif
 
 /**
- * \brief  Initialise the port
+ * \brief  Initialise the port group (PTG) with the speed mode
  *
  * \param [in] devId device Id. Valid values are 0-63
  * \param [in] macNum       mac number. Valid values are 0 to 32.
  * \param [in] macConfigMode  mac mode of the port
  * \param [in] speed speed of the 10/100/1000Mbps modes. used when these modes are used
  * \param [in] initSerDes set to 1 to reinit SerDes
- * \param [in] prbsTestMode 
- * \param [in] firmwareUpload
- * \param [in] fecMode 
+ * \param [in] prbsTestMode  prbsTest for the underlying serdes
+ * \param [in] firmwareUpload upload the serdes firmware
+ * \param [in] fecMode  Forward error correction mode. Available modes are FC and RS.
  * \param [in] enableFEC set to 1 to enable FEC
  *
  * \return XP_STATUS
 */
 XP_STATUS xpsMacPortGroupInit(xpsDevice_t devId, uint8_t macNum, xpMacConfigMode macConfig, xpSpeed speed, uint8_t initSerdes, uint8_t prbsTestMode, uint8_t firmwareUpload, xpFecMode fecMode, uint8_t enableFEC);
+
+/**
+ * \brief  Initialise the port group (PTG) with the speed mode
+ * 
+ * User can keep the port down upon the mac speed change. When keepPortDown given as 1,
+ * all ports of the PTG go down. User is allow to bring the port up afterwards
+ *
+ * \param [in] devId device Id. Valid values are 0-63
+ * \param [in] macNum       mac number. Valid values are 0 to 32.
+ * \param [in] macConfigMode  mac mode of the port
+ * \param [in] speed speed of the 10/100/1000Mbps modes. used when these modes are used
+ * \param [in] initSerDes set to 1 to reinit SerDes
+ * \param [in] prbsTestMode  prbsTest for the underlying serdes
+ * \param [in] firmwareUpload upload the serdes firmware
+ * \param [in] fecMode  Forward error correction mode. Available modes are FC and RS.
+ * \param [in] enableFEC set 1 to enable FEC
+ * \param [in] keepPortDown set 1 to keep ports down when init the PTG.
+ *
+ * \return XP_STATUS
+*/
+XP_STATUS xpsMacPortGroupInitWithLinkStatusControl(xpsDevice_t devId, uint8_t macNum, xpMacConfigMode macConfig, xpSpeed speed, uint8_t initSerdes, uint8_t prbsTestMode, uint8_t firmwareUpload, xpFecMode fecMode, uint8_t enableFEC, uint8_t keepPortDown);
 
 /**
  * \brief  Deinitialise the port group
@@ -261,6 +282,24 @@ XP_STATUS xpsMacGetRxMaxFrmLen(xpsDevice_t devId, uint8_t portNum, uint16_t *fra
  */
 XP_STATUS xpsMacPortSerdesSignalOverride(xpDevice_t devId, uint8_t portNum, uint8_t serdesSignalVal);
 
+/**
+ * \brief  Initialise the port with the provided speed mode. User can keep the port status Down upon switching the port speed if keepPortStatus argument given as 1. If it is 0 then it will keep the normal status of the port.
+ * User can bring up the ports afterward when they switch the speed with keepPortDown as 1
+ *
+ * \param [in] devId device Id. Valid values are 0-63
+ * \param [in] portNum      port number. Valid values are 0 to 127
+ * \param [in] macConfigMode    mac mode
+ * \param [in] initSerdes Flag to determine whether serdes needs to be inirialized or not 
+ * \param [in] prbsTestMode Flag to determine if serdes needs to be initialized in PRBS mode or CORE mode 
+ * \param [in] firmwareUpload Flag to determine if serdes rom file (firmware) needs to be uploaded or not 
+ * \param [in] fecMode  FEC mode. Available FEC modes are: RS_FEC_MODE and FC_FEC_MODE
+ * \param [in] enableFEC    enable FEC mode
+ * \param [in] keepPortDown 1: for keeping the port down upon switching the speed
+ *
+ * \return [XP_STATUS]  On success XP_NO_ERR.
+ *          On failure appropriate error code.
+*/
+XP_STATUS xpsMacPortInitWithLinkStatusControl(xpDevice_t devId, uint8_t portNum, xpMacConfigMode macConfigMode, uint8_t initSerdes, uint8_t prbsTestMode, uint8_t firmwareUpload, xpFecMode fecMode, uint8_t enableFEC, uint8_t keepPortDown);
 #ifdef __cplusplus
 }
 #endif

@@ -60,7 +60,8 @@ typedef struct xpsDevConfigStruct_t
     XP_PROFILE_TYPE profileType;        ///< Profile selection
     xpSkuMode_e mode;                   ///< SKU selection   
     xpsDalType_e dalType;               ///< Driver Abstration Layer (DAL) type selection 
-}xpsDevConfigStruct_t;
+    uint8_t skuInitSkip;                ///< Skip SKU initialization
+} xpsDevConfigStruct_t;
 
 /**
  * \brief Defines XDK initialization routine.
