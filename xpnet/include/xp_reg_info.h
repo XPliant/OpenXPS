@@ -79,6 +79,9 @@ typedef enum xp_register {
     DMA0_RX_PCIE_ERR_REG_E,
     RX_DMA0_CFG_REGLOCKREG_E,
     RX_DMA0_SCRATCHPAD_E,
+    CPU_CTRL_REG_E,
+    CPU_STS_REG_E,
+    SRAM_MEM_CFG_SRAM_EXT_MEM_E,
 
     XP_MAX_REG_ACCESS_LIST
 } xp_register_t;

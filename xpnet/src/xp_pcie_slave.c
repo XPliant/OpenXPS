@@ -297,6 +297,13 @@ u32 xp_regs_list[XP_MAX_REG_ACCESS_LIST][XP80_SUPPORTED_DEVICE_MODES] =
     { 0x08b51710, 0x08b5171c, 0x0275031c },
     /* RX_DMA0_SCRATCHPAD_E                             */
     { 0x08b51714, 0x08b51720, 0x02750320 },
+    /* CPU_CTRL_REG_E */
+    { 0x8a80000+0x1f8, 0x8a80000+0x34c, 0x25e8000+0x34c },
+    /* CPU_STS_REG_E */
+    { 0x8a80000+0x1fc, 0x8a80000+0x350, 0x25e8000+0x350 },
+    /* SRAM_MEM_CFG_SRAM_EXT_MEM_E */
+    { 0x8800000+0x0, 0x8800000+0x0, 0x24a0000+0x0 },
+
 };
 
 #define MAX_DEV_SUPPORTED 8
@@ -634,7 +641,7 @@ static int xp_irq_handler(xp_private_t *priv, u8 reg_blocks,
 static int xp_irq_mgmt_handler(xp_private_t *priv)
 {
     u8 intr_status = 0, i = 0, j = 0, bit_pos = 0;
-    u32 high_intr_src_reg[4], status_reg_addr = 0, queue_bit_map = 0;
+    u32 high_intr_src_reg[HIGH_INTR_SRC_REG_SIZE], status_reg_addr = 0, queue_bit_map = 0;
     xp_work_t *task = NULL;
     unsigned long flags = 0;
 
@@ -642,7 +649,7 @@ static int xp_irq_mgmt_handler(xp_private_t *priv)
 
     memset(&intr_info, 0, sizeof(intr_info));
 
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < HIGH_INTR_SRC_REG_SIZE; i++) {
         high_intr_src_reg[i] = 0; /* Clear the values for older interrupts. */
         spin_lock_irqsave(&priv->tx_dma_read_lock, flags);
         high_intr_src_reg[i] = 
@@ -1032,6 +1039,9 @@ static int xp_dma_mmap(struct file *filp, struct vm_area_struct *vma)
 
     pr_debug("\nMAP Memory.\n");
 
+    /* We must make this descriptor and buffer memory as
+     * non-cacheable mmaped to user space */
+    vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
     /* Map the whole physically contiguous area in one piece. */
     return remap_pfn_range(vma, vma->vm_start, 
                            virt_to_phys((void *)usr_addr) >> PAGE_SHIFT,

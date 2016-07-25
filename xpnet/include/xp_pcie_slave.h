@@ -30,6 +30,7 @@
 
 #define PROC_FS_NAME_SIZE 50
 #define REG_RW_STATUS_SIZE 200
+#define HIGH_INTR_SRC_REG_SIZE 5
  
 /* Register Read/Write */
 typedef struct __attribute__((__packed__)) xp_reg_rw {
