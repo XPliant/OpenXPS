@@ -1104,17 +1104,6 @@ static void xpnet_rxtx_handler(struct work_struct *w)
     queue_delayed_work(priv->wqueue, &priv->dwork, jiffies_defer);
 }
 
-static void xpnet_dma_trigger_handler(struct work_struct *w)
-{
-    xpnet_private_t *priv = container_of(w, xpnet_private_t, dwork_tx_trig.work);
-    unsigned long flags = 0;
-
-    spin_lock_irqsave(&priv->priv_lock, flags);
-    priv->dma_trigger = 1;
-    spin_unlock_irqrestore(&priv->priv_lock, flags);
-}
-
-
 static void xpnet_tx_complete(xpnet_private_t *net_priv, int qno, int maxiter)
 {
     xpnet_queue_struct_t *q = &net_priv->tx_queue[qno];
@@ -1260,7 +1249,6 @@ int xp_netdev_init(xp_private_t *priv)
     }
 
     INIT_DELAYED_WORK(&net_priv->dwork, xpnet_rxtx_handler);
-    INIT_DELAYED_WORK(&net_priv->dwork_tx_trig, xpnet_dma_trigger_handler);
 
     net_priv->instance = instance;
     rc = xpnet_proc_create(net_priv);
@@ -1268,13 +1256,12 @@ int xp_netdev_init(xp_private_t *priv)
        pr_err("Error in xpnet_proc_create.\n");
     }
     queue_delayed_work(net_priv->wqueue, &net_priv->dwork, HZ * 5);
-    queue_delayed_work(net_priv->wqueue, &net_priv->dwork_tx_trig, HZ * 100);
     xpnet_rx_all_queues_start(net_priv);
 
     /* Enable the DMA engine. */
     xpnet_program_mux_setdma(net_priv, 1);
     spin_lock_irqsave(&net_priv->priv_lock, flags);
-    net_priv->dma_trigger = 0;
+    net_priv->dma_trigger = 1;
     spin_unlock_irqrestore(&net_priv->priv_lock, flags);
 
     return 0;
@@ -1309,7 +1296,6 @@ void xp_netdev_deinit(xp_private_t *priv)
     /* Flush and destroy workqueue. */
     xp_netdev_mode_deinit();
     cancel_delayed_work_sync(&net_priv->dwork);
-    cancel_delayed_work_sync(&net_priv->dwork_tx_trig);
     flush_workqueue(net_priv->wqueue);
     xpnet_tx_teardown(net_priv, XPNET_TX_NUM_QUEUES);
     xpnet_rx_teardown(net_priv, XPNET_RX_NUM_QUEUES);
