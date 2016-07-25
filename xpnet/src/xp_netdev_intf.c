@@ -104,6 +104,7 @@ struct xp_netdev_priv {
     struct net_device *netdev;
     unsigned int is_tx_header_set;
     xp_netdev_type netdev_type;
+    rwlock_t netdev_priv_lock;
 };
 
 struct xp_skb_info {
@@ -303,11 +304,6 @@ static netdev_tx_t xp_ndo_start_xmit(struct sk_buff *skb,
     struct xp_netdev_priv *priv = NULL;
     unsigned long flags = 0;
 
-   if (0 == g_net_priv->dma_trigger) {
-        printk("xp_ndo_start_xmit not to transmit.\n");
-        dev_kfree_skb_any(skb);
-        return NETDEV_TX_OK;
-    }
     if (!(dev->flags & IFF_UP)) {
         dev_kfree_skb_any(skb);
         return NETDEV_TX_OK;
@@ -326,20 +322,19 @@ static netdev_tx_t xp_ndo_start_xmit(struct sk_buff *skb,
     if (new_skb_used) {
         tx_header = (xphTxHdr *)skb_push(new_skb, tx_header_len);
 
-        /* copy xp txheader. */
-        read_lock_irqsave(&xp_netdev_list_lock, flags);
+        /* copy xp txheader. Read lock on entry */
+        read_lock_irqsave(&priv->netdev_priv_lock, flags);
         memcpy(tx_header, &priv->tx_header, sizeof(xphTxHdr));
-        read_unlock_irqrestore(&xp_netdev_list_lock, flags);
+        read_unlock_irqrestore(&priv->netdev_priv_lock, flags);
 
         rc = xpnet_start_xmit(new_skb, g_net_priv);
     } else {
         tx_header = (xphTxHdr *)skb_push(skb, tx_header_len);
 
-        /* copy xp txheader. */
-        read_lock_irqsave(&xp_netdev_list_lock, flags);
+        /* copy xp txheader. Read lock on entry */
+        read_lock_irqsave(&priv->netdev_priv_lock, flags);
         memcpy(tx_header, &priv->tx_header, sizeof(xphTxHdr));
-        read_unlock_irqrestore(&xp_netdev_list_lock, flags);
-
+        read_unlock_irqrestore(&priv->netdev_priv_lock, flags);
         rc = xpnet_start_xmit(skb, g_net_priv);
     }
 
@@ -389,12 +384,9 @@ static netdev_tx_t xp_ndo_start_xmit(struct sk_buff *skb,
 static int xp_ndo_set_mac_address(struct net_device *dev, void *p)
 {
     struct sockaddr *addr = p;
-    unsigned long flags = 0;
     DBG("Enter: %s\n", __FUNCTION__);
 
-    write_lock_irqsave(&xp_netdev_list_lock, flags);
     memcpy(dev->dev_addr, addr->sa_data, dev->addr_len);
-    write_unlock_irqrestore(&xp_netdev_list_lock, flags);
 
     DBG("%s: changed MAC to %pM for interface %u\n", 
         dev->name, dev->dev_addr, 
@@ -499,6 +491,7 @@ static int xp_nl_msg_if_create(struct net *netns, xp_nl_msg_intf_t *intf_msg)
     memset(priv, 0x00, sizeof(struct xp_netdev_priv));
 
     priv->xpnet_intf_id = intf_msg->xpnet_intf_id;
+    rwlock_init(&priv->netdev_priv_lock);
     priv->vif = XP_NO_VIF;
     priv->rif = XP_NO_RIF;
     priv->netdev = netdev;
@@ -644,30 +637,35 @@ static int xp_nl_msg_tx_header(struct net *netns,
     unsigned long flags = 0;
     DBG("Enter: %s\n", __FUNCTION__);
 
-    write_lock_irqsave(&xp_netdev_list_lock, flags);
+    /* Read lock only */
+    read_lock_irqsave(&xp_netdev_list_lock, flags);
     list_for_each(iter, &xp_netdev_list) {
         struct xp_netdev_priv *entry = 
             list_entry(iter, struct xp_netdev_priv, list);
 
         if (entry->xpnet_intf_id == tx_header_msg->xpnet_intf_id) {
+            write_lock_irqsave(&entry->netdev_priv_lock, flags);
             if (XP_NL_OPERATION_ADD == tx_header_msg->operation) {
                 LOG("Set TX header for netdev interface, xpnet_id: %u\n", 
                     tx_header_msg->xpnet_intf_id);
+                /* write lock on entry only */
                 memcpy(&entry->tx_header, 
                        &tx_header_msg->tx_header, sizeof(xphTxHdr));
                 entry->is_tx_header_set = 1;
             } else if (XP_NL_OPERATION_REMOVE == tx_header_msg->operation) {
                 LOG("Remove TX header for netdev interface, xpnet_id: %u\n", 
                     tx_header_msg->xpnet_intf_id);
+                /* write lock on entry only */
                 memset(&entry->tx_header, 0x00, sizeof(xphTxHdr));
                 entry->is_tx_header_set = 0;
             }
  
+            write_unlock_irqrestore(&entry->netdev_priv_lock, flags);
             break;
         }
     }
 
-    write_unlock_irqrestore(&xp_netdev_list_lock, flags);
+    read_unlock_irqrestore(&xp_netdev_list_lock, flags);
     return 0;
 }
 
