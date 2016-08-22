@@ -35,6 +35,7 @@
 #include "xp_pcie_slave.h"
 #include "xp_header.h"
 #include "xp_netdev.h"
+#include "version.h"
 
 #define VENDOR_ID             0x177D
 #define CNX88091_A0           0xF000
@@ -51,9 +52,11 @@
 #define DWORD_MASK  0xFFFFFFFFU
 
 
-#define DRIVER_VERSION        "3.2.3"
+#define COMPATIBLE_XDK_VERSION        "3.2.3"
 
-#define XP_PCI_MAX_ADAPTERS   255
+#define XP_PCI_MAX_ADAPTERS   		255
+/* To restrict counts which is getting passed in copy_to_user and copy_from_user */
+#define XP_MAX_BYTES_FOR_COPY		1024
 
 /* XP80 IO memory size which should be mmaped. */
 #define XP_MAX_IO_MEM         (256 * 1024 * 1024)
@@ -311,35 +314,46 @@ static xp_private_t *xp_pcie_dev_ptr[MAX_DEV_SUPPORTED];
 
 static int xp_driver_version_get(void __user *argp)
 {
-    return copy_to_user(argp, DRIVER_VERSION, sizeof(DRIVER_VERSION));
+    return copy_to_user(argp, COMPATIBLE_XDK_VERSION, sizeof(COMPATIBLE_XDK_VERSION));
 }
 
 int xp_dev_reg_read(u32 *rw_value, u32 reg_addr, 
-                    u8 reg_size, xp_private_t *priv)
+                    u8 reg_size, xp_private_t *priv, u32 count)
 {
     int rc = 0;
+    u32 i = 0;
     unsigned long flags = 0;
 
     spin_lock_irqsave(&priv->tx_dma_read_lock, flags);
 
     switch (reg_size) {
         case BYTE_SIZE:
-            *rw_value = *((u8*)((uint8_t*)(priv->vma) + reg_addr));
-            /* pr_debug("rw_value = %x\n", *rw_value); */
+            for (i = 0; i < count; i++) {
+                rw_value[i] = *((u8*)((uint8_t*)(priv->vma) + reg_addr));
+                reg_addr += reg_size;
+                /* pr_debug("rw_value[i] = %x\n", %d,rw_value[i]); */
+            }
             break;
 
         case WORD_SIZE:
-            *rw_value = *((u16*)((uint8_t*)(priv->vma) + reg_addr));
-            /* pr_debug("rw_value = %x\n", *rw_value); */
+            for (i = 0; i < count; i++) {
+                rw_value[i] = *((u16*)((uint8_t*)(priv->vma) + reg_addr));
+                reg_addr += reg_size;
+                /* pr_debug("rw_value[i] = %x\n", %d,rw_value[i]); */
+            } 
             break;
 
         case DWORD_SIZE:
-            *rw_value = *(u32*)((uint8_t*)(priv->vma) + reg_addr);
-            /* pr_debug("rw_value = %x,
-                        regoffset = 0x%x\n", *rw_value, reg_addr); */
-            /* pr_debug("%s:%d xpPrvPtr->vma = 0x%p reg_addr = %p\n",
-                        __func__, __LINE__, priv->vma ,
-                        ((uint8_t*)(priv->vma) + reg_addr)); */
+            for (i = 0; i < count; i++) {
+                rw_value[i] = *(u32*)((uint8_t*)(priv->vma) + reg_addr);
+                reg_addr += reg_size;
+                /* pr_debug("rw_value[i] = %x\n", %d,rw_value[i]); */
+                /* pr_debug("rw_value = %x,
+                            regoffset = 0x%x\n", *rw_value, reg_addr); */
+                /* pr_debug("%s:%d xpPrvPtr->vma = 0x%p reg_addr = %p\n",
+                            __func__, __LINE__, priv->vma ,
+                            ((uint8_t*)(priv->vma) + reg_addr)); */
+            }
             break;
 
         default:
@@ -352,10 +366,11 @@ int xp_dev_reg_read(u32 *rw_value, u32 reg_addr,
     return rc;
 }
 
-int xp_dev_reg_write(u32 rw_value, u32 reg_addr, 
-                     u8 reg_size, xp_private_t *priv)
+int xp_dev_reg_write(u32* rw_value, u32 reg_addr, 
+                     u8 reg_size, xp_private_t *priv, u32 count)
 {
     int rc = 0;
+    u32 i = 0;
     u32 value = 0;
     unsigned long flags = 0;
 
@@ -363,21 +378,30 @@ int xp_dev_reg_write(u32 rw_value, u32 reg_addr,
 
     switch (reg_size) {
         case BYTE_SIZE:
-            value = *(u32*)((uint8_t*)(priv->vma) + reg_addr);
-            *(u32*)((uint8_t*)(priv->vma) + reg_addr) = 
-                (value & ~BYTE_MASK ) | (rw_value & BYTE_MASK);
-            /* pr_debug("rw_value = 0x%x\n", rw_value & BYTE_MASK); */
+            for (i = 0; i < count; i++) {
+                value = *(u32*)((uint8_t*)(priv->vma) + reg_addr);
+                *(u32*)((uint8_t*)(priv->vma) + reg_addr) = 
+                    (value & ~BYTE_MASK ) | (rw_value[i] & BYTE_MASK);
+                /* pr_debug("rw_value[i] = 0x%x\n", rw_value[i] & BYTE_MASK); */
+                reg_addr += reg_size;
+            }
             break;
 
         case WORD_SIZE:
-            value = *(u32*)((uint8_t*)(priv->vma) + reg_addr);
-            *(u32*)((uint8_t*)(priv->vma) + reg_addr) = 
-                (value & ~WORD_MASK) | (rw_value & WORD_MASK);
-            /* pr_debug("rw_value = 0x%x\n", rw_value & WORD_MASK); */
+            for (i = 0; i < count; i++) {
+                value = *(u32*)((uint8_t*)(priv->vma) + reg_addr);
+                *(u32*)((uint8_t*)(priv->vma) + reg_addr) = 
+                    (value & ~WORD_MASK) | (rw_value[i] & WORD_MASK);
+                /* pr_debug("rw_value[i] = 0x%x\n", rw_value[i] & WORD_MASK); */
+                reg_addr += reg_size;
+            }
             break;
 
         case DWORD_SIZE:
-            *(u32*)((uint8_t*)(priv->vma) + reg_addr) = rw_value;
+            for (i = 0; i < count; i++) {
+                *(u32*)((uint8_t*)(priv->vma) + reg_addr) = rw_value[i];
+                reg_addr += reg_size;
+            }
             break;
 
         default:
@@ -471,8 +495,8 @@ static ssize_t xpreg_proc_write(struct file *filp, const char *buf,
                 sizeof(xp_reg_priv->reg_rw_status));
    
          if (2 == sscanf(buf, "w 0x%x 0x%x", &reg_index, &reg_value)) {
-             rc = xp_dev_reg_write(reg_value,reg_index, DWORD_SIZE,
-                                  xp_reg_priv);
+             rc = xp_dev_reg_write(&reg_value,reg_index, DWORD_SIZE,
+                                  xp_reg_priv, 1);
              if (rc == -EINVAL) {
                  snprintf(xp_reg_priv->reg_rw_status,
                           sizeof(xp_reg_priv->reg_rw_status) - 1,
@@ -485,7 +509,7 @@ static ssize_t xpreg_proc_write(struct file *filp, const char *buf,
              }
          } else if(1 == sscanf(buf, "r 0x%x", &reg_index)) {
              rc = xp_dev_reg_read(&reg_value,reg_index, DWORD_SIZE,
-                                 xp_reg_priv);
+                                 xp_reg_priv, 1);
              if (rc == -EINVAL) {
                  snprintf(xp_reg_priv->reg_rw_status,
                           sizeof(xp_reg_priv->reg_rw_status) - 1,
@@ -640,8 +664,9 @@ static int xp_irq_handler(xp_private_t *priv, u8 reg_blocks,
 
 static int xp_irq_mgmt_handler(xp_private_t *priv)
 {
-    u8 intr_status = 0, i = 0, j = 0, bit_pos = 0;
+    u8 i = 0, j = 0, bit_pos = 0;
     u32 high_intr_src_reg[HIGH_INTR_SRC_REG_SIZE], status_reg_addr = 0, queue_bit_map = 0;
+    u32 intr_status = 0;
     xp_work_t *task = NULL;
     unsigned long flags = 0;
 
@@ -729,12 +754,12 @@ static int xp_irq_mgmt_handler(xp_private_t *priv)
 
             queue_work(priv->w_queue, &task->work);
             intr_status = 0x7; /* Clear all interrupts. */
-            xp_dev_reg_write(intr_status, status_reg_addr, 1, priv);
+            xp_dev_reg_write(&intr_status, status_reg_addr, 1, priv, 1);
             queue_bit_map = 1 << j;
-            xp_dev_reg_write(queue_bit_map, 
+            xp_dev_reg_write(&queue_bit_map, 
                              XP_GET_PCI_BASE_OFFSET_FROM_REG_NAME(
                              HIGH_INTR_SOURCE_REG_ADDR, priv->mode) + 
-                             (i * 4), 4, priv);
+                             (i * 4), 4, priv, 1);
             break;
         }
     }
@@ -1146,10 +1171,11 @@ static struct file_operations xp_dma_fops = {
 static int xp_dev_reg_access(void __user *argp, xp_private_t *priv)
 {
     int rc = 0;
-    int i = 0;
     u8 reg_size = 0;
     u32 reg_addr = 0;
-    u16 count = 0;
+    u32 count = 0;
+    u32 copy_count = 0, count_value = 0;
+    u8 idx = 0;
     xp_reg_rw_t *pci_rw = NULL;
     u32 *tmp_value = NULL, *tmp_alias = NULL;
 
@@ -1165,19 +1191,27 @@ static int xp_dev_reg_access(void __user *argp, xp_private_t *priv)
         goto err_mem_pci_rw;
     }
 
-    count = pci_rw->count;
+    if(!(pci_rw->size % DWORD_SIZE))
+    {
+        count = pci_rw->size/DWORD_SIZE;
+        pci_rw->size = DWORD_SIZE;
+    }
+    else if(pci_rw->size == WORD_SIZE)
+    {
+        pci_rw->size = WORD_SIZE;
+        count = 1;
+    }
+    else
+    {
+        count = pci_rw->size;
+        pci_rw->size = BYTE_SIZE;
+    }
+
     if (!count) {
         rc = -EINVAL;
         goto err_mem_pci_rw;
     }
-
-    if (!((pci_rw->size == BYTE_SIZE) || 
-          (pci_rw->size == WORD_SIZE) || 
-          (pci_rw->size == DWORD_SIZE))) {
-        rc = -EINVAL;
-        goto err_mem_pci_rw;
-    }
-
+    //printk("count = %d, pci_rw->size = %d \n", count, pci_rw->size);
     reg_size = pci_rw->size;
     reg_addr = pci_rw->reg_address;
 
@@ -1188,37 +1222,46 @@ static int xp_dev_reg_access(void __user *argp, xp_private_t *priv)
     }
 
     if (pci_rw->direction == SET_REG) {
-        if (copy_from_user(tmp_value, (void*)pci_rw->value, 
-                           pci_rw->count * reg_size)) {
+
+        count_value = count * reg_size;
+        do
+		{
+           copy_count = (count_value > XP_MAX_BYTES_FOR_COPY) ? XP_MAX_BYTES_FOR_COPY : count_value;
+           count_value -= copy_count;
+
+           if (copy_from_user(((u8*)tmp_value + (idx * XP_MAX_BYTES_FOR_COPY)), (void*)(pci_rw->value + (idx * XP_MAX_BYTES_FOR_COPY)), copy_count)) {
+               rc = -EFAULT;
+               goto err_mem_tmp;
+           }
+           idx++;
+		}while(count_value);
+
+        rc = xp_dev_reg_write(tmp_value, reg_addr, reg_size, priv, count);
+        if (rc) {
             rc = -EFAULT;
             goto err_mem_tmp;
         }
 
-        for (i = 0; i < count; i++) {
-            rc = xp_dev_reg_write(tmp_value[i], reg_addr, reg_size, priv);
-            if (rc) {
-                rc = -EFAULT;
-                goto err_mem_tmp;
-            }
-
-            reg_addr += reg_size;
-        }
     } else if (pci_rw->direction == GET_REG) {
         tmp_alias = tmp_value;
 
-        for (i = 0; i < count; i++) {
-            rc = xp_dev_reg_read(&tmp_value[i], reg_addr, reg_size, priv);
-            if (rc) {
-                rc = -EFAULT;
-                goto err_mem_tmp;
-            }
-
-            reg_addr += reg_size;
+        rc = xp_dev_reg_read(tmp_value, reg_addr, reg_size, priv, count);
+        if (rc) {
+            rc = -EFAULT;
+            goto err_mem_tmp;
         }
 
-        if (copy_to_user((void*)pci_rw->value,
-                         tmp_alias, count * sizeof(u32)))
-            rc = -EFAULT;
+	    count_value = count * sizeof (u32);
+	    do
+	    {
+	        copy_count = (count_value > XP_MAX_BYTES_FOR_COPY) ? XP_MAX_BYTES_FOR_COPY : count_value;
+	        count_value -= copy_count;
+	    
+	        if (copy_to_user((void *) (pci_rw->value + (idx * XP_MAX_BYTES_FOR_COPY)), ((u8 *) tmp_alias + (idx * XP_MAX_BYTES_FOR_COPY)), copy_count)){
+	    		rc = -EFAULT;
+	        }
+	        idx++;
+	      }while (count_value);
     } else {
         pr_err("%s: Invalid choice of reg direction=%x\n", 
                __func__, pci_rw->direction);
@@ -1779,7 +1822,8 @@ static int __init xp_module_init(void)
 {
     int rc = 0, i = 0, update_pci_table = 0;
 
-    pr_info("XP80 PCIe End Point Driver (version: %s).\n", DRIVER_VERSION),
+    pr_info("XP80 PCIe End Point Driver (version: %s).\n", XPTOOLS_VERSION),
+    pr_info("Compatible XDK (version: %s).\n", COMPATIBLE_XDK_VERSION),
     pr_info("Copyright(c) 2013 Xpliant INC.\n");
 
     /* Create sys class */
@@ -1924,8 +1968,8 @@ s32 xp_pci_drv_write_reg(int dev, u32 rw_value,
     if (NULL == xp_pcie_dev_ptr[dev]) {
         return -1;
     }
-    return xp_dev_reg_write(rw_value, reg_addr,
-                reg_size, xp_pcie_dev_ptr[dev]);
+    return xp_dev_reg_write(&rw_value, reg_addr,
+                reg_size, xp_pcie_dev_ptr[dev], 1);
 }
 
 s32 xp_pci_drv_read_reg(int dev, u32 *rw_value,
@@ -1939,7 +1983,7 @@ s32 xp_pci_drv_read_reg(int dev, u32 *rw_value,
     }
 
     return xp_dev_reg_read(rw_value, reg_addr,
-            reg_size, xp_pcie_dev_ptr[dev]);
+            reg_size, xp_pcie_dev_ptr[dev], 1);
 }
 
 u32 xp_get_reg_addr_by_id(int dev, s32 reg_id) {
@@ -1991,7 +2035,7 @@ module_param(isr_enable, bool, 0);
 MODULE_AUTHOR("Xpliant INC Confidential.");
 MODULE_DESCRIPTION("User mode PCIe Endpoint device interface.");
 MODULE_LICENSE("GPL");
-MODULE_VERSION(DRIVER_VERSION);
+MODULE_VERSION(XPTOOLS_VERSION);
 MODULE_ALIAS("pcie:pciedev");
 MODULE_DEVICE_TABLE(pci, xp_pci_ids);
 
