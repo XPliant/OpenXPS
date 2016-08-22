@@ -50,9 +50,9 @@ extern int xp_netdev_mode_deinit(void);
 extern void xp_rx_skb_process(xpnet_private_t *priv, struct sk_buff *skb);
 extern int xpnet_proc_create(xpnet_private_t *net_priv);
 extern int xp_dev_reg_read(u32 *rw_value, u32 reg_addr, 
-                           u8 reg_size, xp_private_t *priv);
-extern int xp_dev_reg_write(u32 rw_value, u32 reg_addr, 
-                            u8 reg_size, xp_private_t *priv);
+                           u8 reg_size, xp_private_t *priv, u32 count);
+extern int xp_dev_reg_write(u32 *rw_value, u32 reg_addr, 
+                            u8 reg_size, xp_private_t *priv, u32 count);
 
 typedef int32_t (*reg_rw_func)(xpnet_private_t *, u32, u8, u32 *, u32);
 
@@ -125,17 +125,15 @@ static int32_t __xp_dev_reg_read_q(xpnet_private_t *net_priv, u32 reg_id,
 int32_t xp_dev_reg_read_q(xpnet_private_t *net_priv, u32 reg_id, 
                           u8 data_size, u32 *value, u32 qnum)
 {
-    u32 reg_offset, i;
+    u32 reg_offset;
 
     reg_offset = 
         XP_GET_PCI_BASE_OFFSET_FROM_REG_NAME(reg_id, net_priv->pci_priv->mode);
     reg_offset = XP_GET_DMA_Q_REG_OFFSET(reg_offset, data_size, qnum);
 
     /* No testing performed, caller ensures enough allocation. */
-    for (i = 0; i < data_size; i++) {
-        xp_dev_reg_read(&value[i], reg_offset + (i * sizeof(u32)), 
-                        4, net_priv->pci_priv);
-    }
+    xp_dev_reg_read(value, reg_offset, 
+                    4, net_priv->pci_priv, data_size);
 
     return 0;
 }
@@ -161,18 +159,15 @@ static int32_t __xp_dev_write_q(xpnet_private_t *net_priv, u32 reg_id,
 int32_t xp_dev_reg_write_q(xpnet_private_t *net_priv, u32 reg_id, 
                            u8 data_size, u32 *value, u32 qnum)
 {
-    u32 reg_offset, i;
+    u32 reg_offset;
 
     reg_offset = 
         XP_GET_PCI_BASE_OFFSET_FROM_REG_NAME(reg_id, net_priv->pci_priv->mode);
     reg_offset = XP_GET_DMA_Q_REG_OFFSET(reg_offset, data_size, qnum);
 
-    for (i = 0; i < data_size; i++) {
-        xp_dev_reg_write(value[i], 
-                         reg_offset + (i * sizeof(u32)), 
-                         4, net_priv->pci_priv);
-    }
-
+    xp_dev_reg_write(value, 
+                     reg_offset, 
+                     4, net_priv->pci_priv, data_size);
     return 0;
 }
 

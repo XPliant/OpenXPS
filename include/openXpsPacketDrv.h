@@ -37,8 +37,8 @@ extern "C" {
 /**
  * \brief Function pointer for cpu packet rx processing
  * \param [in] devId Device Id. Valid values are 0-63
- * \param [in] xphRxHdr * xphHdr 24 bytes of XPH Rx Header.
- * \param [out]  buf Buffer pointer where packet data is available.
+ * \param [in] portNum Port number
+ * \param [out] buf Buffer pointer where packet data is available.
  * \param [in] bufSize Size of the packet
  * \param [in] userData User data passed to Rx handler callback
  *
