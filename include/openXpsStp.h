@@ -46,6 +46,24 @@ extern "C" {
 XP_STATUS xpsStpGetDefault (xpsDevice_t devId, xpsStp_t *stpId);
 
 /**
+ * \brief This method configures spanning tree and returns the id to the user. 
+ *
+ * \param [out] *stpId
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsStpCreate (xpsStp_t *stpId);
+
+/**
+ * \brief This method destroys a spanning tree.
+ *
+ * \param [in] stpId
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsStpDestroy (xpsStp_t stpId);
+
+/**
  * \brief This method configures the spanning tree state for a specific interface.
  *
  * \param [in] devId
@@ -56,6 +74,18 @@ XP_STATUS xpsStpGetDefault (xpsDevice_t devId, xpsStp_t *stpId);
  * \return XP_STATUS
  */
 XP_STATUS xpsStpSetState (xpsDevice_t devId, xpsStp_t stpId, xpsInterfaceId_t intfId, xpsStpState_e stpState);
+
+/**
+ * \brief This method returns the spanning tree state for an interface.
+ *
+ * \param [in] devId
+ * \param [in] stpId
+ * \param [in] intfId
+ * \param [in] stpState
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsStpGetState (xpsDevice_t devId, xpsStp_t stpId, xpsInterfaceId_t intfId, xpsStpState_e *stpState);
 
 #ifdef __cplusplus
 }

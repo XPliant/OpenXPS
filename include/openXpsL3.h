@@ -158,16 +158,6 @@ XP_STATUS xpsL3SetIntfIpv4UcRoutingEn(xpsDevice_t devId, xpsInterfaceId_t l3Intf
 */
 XP_STATUS xpsL3SetIntfIpv6UcRoutingEn(xpsDevice_t devId, xpsInterfaceId_t l3IntfId, uint32_t enable);
 
-/**
- * \brief This method enable/disable IPv4 Host Lookup.
- *
- * \param [in] devId
- * \param [in] enable
- *
- * \return XP_STATUS
- */
-
-XP_STATUS xpsL3SetIpv4HostLookupEnable(xpsDevice_t devId, uint32_t enable);
 
 /**
  * \brief Add a L3 Host Entry
@@ -212,11 +202,11 @@ XP_STATUS xpsL3UpdateIpRouteEntry(xpsDevice_t devId, xpsL3RouteEntry_t *pL3Route
  *
  * \param [in] devId Device Id of device.
  * \param [in] index Index of the Host entry to be removed from hardware.
- * \param [in] *pL3HostEntry Pointer to L3 Host entry structure.
+ * \param [in] pL3PrefixType Prefix Type 
  *
  * \return XP_STATUS
  */
-XP_STATUS xpsL3RemoveIpHostEntryByIndex(xpsDevice_t devId, uint32_t index, xpsL3HostEntry_t *pL3HostEntry);
+XP_STATUS xpsL3RemoveIpHostEntryByIndex(xpsDevice_t devId, uint32_t index, xpIpPrefixType_t pL3PrefixType);
 
 /**
  * \brief Add L3 Route Entry
@@ -263,8 +253,8 @@ XP_STATUS xpsL3SetRouteNextHop(xpsDevice_t devId, uint32_t nhId, xpsL3NextHopEnt
 /**
  * \brief Clear the NextHop Entry for given Next-Hop ID in a device.
  *
- * \param [in] devId
- * \param [in] nhId
+ * \param [in] devId Device Id of device.
+ * \param [in] nhId Next-Hop Id of device.
  *
  * \return XP_STATUS
  */
@@ -292,7 +282,7 @@ XP_STATUS xpsL3CreateVlanIntf(xpsVlan_t vlanId, xpsInterfaceId_t *l3IntfId);
 /**
  * \brief Removes L3 Interface from a specific VLAN.
  *
- * \param [in] xpsVlan_t vlanId
+ * \param [in] vlanId
  * \param [in] l3IntfId L3 Interface ID
  *
  * \return XP_STATUS
@@ -303,11 +293,96 @@ XP_STATUS xpsL3DestroyVlanIntf(xpsVlan_t vlanId, xpsInterfaceId_t l3IntfId);
  * \brief Set hashable fields for a device
  *
  * \param [in] deviceId   Device id
- * \param [in] xpHashField[]  array of fields
+ * \param [in] fields  array of fields
+ * \param [in] size
  *
  * \return XP_STATUS
  */
 XP_STATUS xpsL3SetHashFields(xpsDevice_t deviceId, xpHashField* fields, size_t size);
+
+/**
+ * \brief This method enables/disables router ACL on the L3 Interface
+ *
+ * \param [in] devId Device Id of device.
+ * \param [in] l3IfId L3 Interface ID
+ * \param [in] enable
+ * \return int
+ */
+XP_STATUS xpsL3SetRouterAclEnable(xpsDevice_t devId, xpsInterfaceId_t l3IfId, uint8_t enable);
+
+/**
+ * \brief This method sets router ACL ID on the L3 Interface
+ *
+ * \param [in] devId Device Id of device.
+ * \param [in] l3IfId L3 Interface ID
+ * \param [in] aclId
+ * \return int
+ */
+XP_STATUS xpsL3SetRouterAclId(xpsDevice_t devId, xpsInterfaceId_t l3IfId, uint32_t aclId);
+ 
+/**
+ * \brief This method Creates an L3 sub interface.
+ *
+ * \param [out] *l3IntfId L3 Interface ID
+ * 
+ * \return XP_STATUS 
+*/
+XP_STATUS xpsL3CreateSubIntf(xpsInterfaceId_t *l3IntfId);
+
+
+/**
+ * \brief This method destroys L3 sub interface.
+ * 
+ * \param [in] l3IntfId L3 Interface ID
+ * 
+ * \return XP_STATUS 
+*/
+XP_STATUS xpsL3DestroySubIntf(xpsInterfaceId_t l3IntfId);
+
+
+/**
+ * \brief This method binds L3 sub interface with the port interface
+ *         over which it is created.
+ * 
+ * \param [in] portIntfId Port Interface ID
+ * \param [in] l3IntfId L3 Interface ID
+ * \param [in] encapId VLAN-ID
+ * 
+ * \return XP_STATUS 
+*/
+XP_STATUS xpsL3BindSubIntf (xpsInterfaceId_t portIntfId, xpsInterfaceId_t l3IntfId, xpsVlan_t encapId);
+
+/**
+ * \brief This method detaches L3 sub interface from the port interface
+ *         over which it is created.
+ * 
+ * \param [in] portIntfId Port Interface ID
+ * \param [in] l3IntfId L3 Interface ID
+ * \param [in] encapId Vlan-ID
+ * 
+ * \return XP_STATUS 
+*/
+XP_STATUS xpsL3UnBindSubIntf (xpsInterfaceId_t portIntfId, xpsInterfaceId_t l3IntfId, xpsVlan_t encapId);
+
+/**
+ * \brief This method Initializes L3 sub interface.
+ * 
+ * \param [in] devId Device Id of device.
+ * \param [in] l3IntfId L3 Interface ID
+ * 
+ * \return XP_STATUS 
+*/
+XP_STATUS xpsL3InitSubIntf (xpsDevice_t devId, xpsInterfaceId_t l3IntfId);
+
+/**
+ * \brief This method De-Initializes L3 sub interface.
+ * 
+ * \param [in] devId Device Id of device.
+ * \param [in] l3IntfId L3 Interface ID
+ * 
+ * \return XP_STATUS 
+*/
+XP_STATUS xpsL3DeInitSubIntf (xpsDevice_t devId, xpsInterfaceId_t l3IntfId);
 
 #ifdef __cplusplus
 }

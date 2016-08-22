@@ -60,6 +60,7 @@ typedef uint8_t ipv6Addr_t[16];      ///< User defined type for Ipv6 Address
 typedef uint8_t macAddrHigh_t[5];    ///< User defined type for MAC Address for Higher 32 Bits
 typedef uint8_t macAddrLow_t;
 typedef uint32_t xpDatapath_t;
+typedef uint32_t xpReasonCode_t;
 
 /**
  * \brief This type (enum) defines the global function calls return statuses 
@@ -712,6 +713,123 @@ typedef struct xpOpenFlowTableProfile_t
 } xpOpenFlowTableProfile_t;
 
 /**
+ * Structures defintions for IACL
+ */
+
+typedef union xpIaclKeyFieldId
+{
+    xpIaclV4KeyFlds v4Fld;
+    xpIaclV6KeyFlds v6Fld;
+    xpIaclV4MplsKeyFlds v4MplsFld;
+} xpIaclKeyFieldId_t;
+
+typedef struct xpIaclkeyField
+{
+    //union{
+    //          xpIaclV4KeyFlds v4Fld;
+    //          xpIaclV6KeyFlds v6Fld;
+    //}fld;
+    xpIaclKeyFieldId_t fld;
+    uint8_t*  value;   //this is a pointer to an byte array
+    uint8_t*  mask;    //this is a pointer to an byte mask array
+} xpIaclkeyField_t;
+
+typedef struct xpIaclkeyFieldList
+{
+    uint32_t numFlds;
+    uint32_t isValid;
+    xpIaclKeyType type;
+    xpIaclkeyField_t* fldList;
+} xpIaclkeyFieldList_t;
+
+typedef struct xpIaclKeyMask_t
+{
+    uint8_t* value;
+    uint8_t* mask;
+} xpIaclKeyMask_t;
+
+typedef struct xpQosData_t
+{
+    uint32_t dscp : 6;
+    uint32_t pcp : 3;
+    uint32_t rsvd : 5;
+}xpQosData_t;
+
+typedef union xpQosOrVlanRwData_t
+{
+    xpQosData_t qosData;
+    uint32_t vlan : 14;
+}xpQosOrVlanRwData_t;
+
+typedef union xpEgrVifOrRsnCode_t 
+{
+    xpReasonCode_t rsnCode;
+    uint32_t eVifId;
+}xpEgrVifOrRsnCode_t;
+
+/**
+ * \struct xpIaclData
+ * \brief This struct represents the data portion of entry in
+ */
+typedef struct xpIaclData_t
+{
+    uint32_t isTerminal : 1;
+    uint32_t enPktCmdUpd : 1;
+    uint32_t enRedirectToEvif : 1;
+    uint32_t enPolicer : 1;
+    uint32_t enMirrorSsnUpd : 1;
+    uint32_t enTcRemark : 1;
+    uint32_t enDpRemark : 1;
+    uint32_t enDscpRemarkOrVrfUpd : 1;
+    uint32_t enPcpRemarkOrStagRw : 1;
+    uint32_t qosOrVlanRw : 1;
+    uint32_t encapType : 2;
+    uint32_t pktCmd : 2;
+    uint32_t mirrorSessionId : 2;
+    xpEgrVifOrRsnCode_t egrVifIdOrRsnCode;	
+    uint32_t enCopp: 1;
+    uint32_t available : 1;
+    uint32_t policerId : 10;
+    uint32_t tc : 4;
+    uint32_t dp : 2;
+    xpQosOrVlanRwData_t qosOrVlanRwData;
+#ifdef __cplusplus
+    /**
+     * \public
+     * \brief Constructor of xpIaclData_t.
+     *
+     */
+    xpIaclData_t();
+
+    /**
+     * \public
+     * \brief Prints xpIaclData_t.
+     *
+     */
+    void printEntry();
+#endif
+} xpIaclData_t;
+
+/*
+ * This structure will be passed in createTable
+ * to create tables based of the keySize and num db's
+ * user wants to create
+ */
+
+typedef struct xpIaclTableInfo
+{
+    xpIaclType_e tblType;
+    uint32_t keySize;
+    uint32_t numDb;
+}xpIaclTableInfo_t;
+
+typedef struct xpIaclTableProfile
+{
+     uint32_t numTables;
+     xpIaclTableInfo_t tableProfile[XP_IACL_TOTAL_TYPE];
+}xpIaclTableProfile_t;
+
+/**
  * \brief Function pointer to be registered for the port event handler
  * \param [in] devId Device ID
  * \param [in] portNum Port Number
@@ -722,7 +840,7 @@ typedef void (*xpEventHandler)(xpDevice_t devId, uint8_t portNum);
 
 /**
  * \brief Function pointer to be registered for completion of packet transmission
- * \param [in] intrSrcDev Device Id. Valid values are 0-63
+ * \param [in]rSrcDev Device Id. Valid values are 0-63
  *
  * \return XP_STATUS
  */
@@ -730,9 +848,9 @@ typedef void (*xpPacketTxCompletion)(xpDevice_t intrSrcDev);
 
 /**
  * \brief Function pointer to indicate whether the packet is available
- * \param [in] xpDevice_t intrSrcDev Device Id. Valid values are 0-63
+ * \param [in]rSrcDev Device Id. Valid values are 0-63
  * \param [out] const void * buf Buffer pointer where packet data is available.
- * \param [in] uint16_t bufSize Size of packet available
+ * \param [in] bufSize Size of packet available
  *
  * \return XP_STATUS
  */
@@ -740,7 +858,7 @@ typedef void (*xpPacketAvailable)(xpDevice_t intrSrcDev, const void* buf, uint16
 
 /**
  * \brief Function pointer to indicate a DMA error
- * \param [in] xpDevice_t intrSrcDev Device Id. Valid values are 0-63
+ * \param [in]rSrcDev Device Id. Valid values are 0-63
  *
  * \return XP_STATUS
  */
@@ -942,10 +1060,20 @@ typedef xpPacketAvailable xpsPacketAvailable_f;
 
 /**
  * \brief Function pointer to indicate a DMA error
- * \param [in] xpDevice_t intrSrcDev
+ * \param [in]rSrcDev
  *
  * \return XP_STATUS
  */
 typedef xpDmaError xpsDmaError_f;
+
+/**
+ * \xp scope information
+*/ 
+typedef uint32_t xpScope_t;
+
+/**
+ * \xps scope information  
+*/
+typedef xpScope_t xpsScope_t;
 
 #endif 

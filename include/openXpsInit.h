@@ -118,7 +118,6 @@ const char **xpsSdkLoggerInit(void);
  * 
  * This API will enable logging to file.
  *
- * \param [in] logFile
  * \return XP_STATUS
  */
 XP_STATUS xpsSdkLogToFile(const char*);
@@ -137,8 +136,8 @@ XP_STATUS xpsSdkLogVersion(void);
  *
  * This API initializes SDK's logging options.
  *
- * \param [in] it
- * \param [in] * param
+ * \param [in] id
+ * \param [in] param
  * \return STATUS
  */
 XP_STATUS xpsSdkSetLoggerOptions(uint32_t id, char *param);

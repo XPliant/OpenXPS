@@ -457,10 +457,10 @@ typedef enum xpIpPrefixType_t
 typedef enum xpInitType_t
 {
     INIT_UNKNOWN = 0,
-    INIT_COLD,                      ///< Software and Hardware Initialization
-    INIT_WARM,                      ///< Software Initialization only, no shadow present
-    INIT_WARM_SYNC_TO_HW,           ///< Software Initialization, to load data from shadow to Hardware
-    INIT_WARM_SYNC_TO_SHADOW,       ///< Software and Hardware Initialization, to load data from Hardware to shadow
+    INIT_COLD,                      ///< Software and Hardware Initialization with Default Values
+    INIT_WARM,                      ///< Software Initialization only, no Shadow present
+    INIT_WARM_SYNC_TO_HW,           ///< Software Initialization only, Then load data from Shadow to Hardware
+    INIT_WARM_SYNC_TO_SHADOW,       ///< Software Initialization only, Then load data from Hardware to Shadow
     INIT_MAX
 } xpInitType_t;
 
@@ -934,6 +934,7 @@ typedef enum xpsInterfaceType_e
 {
     XPS_PORT = 0,
     XPS_EXTENDED_PORT,         ///< 802.1BR port extention
+    XPS_PORT_CONTROL_VIF,      ///< Control Vif with ignore TRT bit set
     XPS_LAG,                   ///< LAG  
     XPS_TUNNEL_MPLS,           ///< MPLS
     XPS_TUNNEL_VXLAN,          ///< VXLAN Tunnel
@@ -948,12 +949,186 @@ typedef enum xpsInterfaceType_e
     XPS_L2_MCAST_GROUP,        ///< L2 Multicast Group
     XPS_L3_MCAST_GROUP,        ///< L3 Multicast Group 
     XPS_PORT_ROUTER,           ///< Port Based Router
+    XPS_SUBINTERFACE_ROUTER,   ///< Sub interface Router
     XPS_VLAN_ROUTER,           ///< VLAN Based Router
     XPS_TUNNEL_ROUTER,         ///< Tunnel Based Router
-    XPS_VPN_ROUTER,            ///< L3VPN Based Router
-    XPS_PORT_CONTROL_VIF       ///< Control Vif with ignore TRT bit set
+    XPS_VPN_ROUTER             ///< L3VPN Based Router
 } xpsInterfaceType_e;
 
+/**
+ * \typedef xpQosMapPfl_t
+ * \public
+ * \brief This type (enum) defines the number of Qos Profiles
+ *        supported in the QosMap Table
+ */
+typedef enum
+{
+    QOSMAP_PROFILE_TRUST,
+    QOSMAP_PROFILE_1,
+    QOSMAP_PROFILE_2,
+    QOSMAP_PROFILE_3,
+    QOSMAP_PROFILE_4,
+    QOSMAP_PROFILE_5,
+    QOSMAP_PROFILE_6,
+    QOSMAP_PROFILE_7,
+    QOSMAP_PROFILE_MAX,
+} xpQosMapPfl_t;
+
+/**
+ *IACL related enums
+ */
+/**
+*\type xpAclType_e
+*\public
+*\brief This type (enum) defines types of ACL tables
+*
+**/
+typedef enum
+{
+    XP_ACL_IACL0,               ///< Port IACL
+    XP_ACL_IACL1,               ///< Bridge IACL
+    XP_ACL_IACL2,               ///< Router IACL              
+    XP_ACL_EACL,                ///< EACL
+    XP_ACML_TOTAL_TYPE,
+} xpAclType_e;
+
+/**
+ *\type xpIaclType_e
+ *\public
+ *\brief This type (enum) defines type of IACL Table.
+ *
+ **/
+typedef enum
+{
+    XP_IACL0,
+    XP_IACL1,
+    XP_IACL2,
+    XP_IACL_TOTAL_TYPE,
+} xpIaclType_e;
+
+/**
+ * \brief IPv4 IACL Key Fields
+ */
+typedef enum
+{
+    XP_IACL_KEY_TYPE_V4,        ///< 8b 
+    XP_IACL_ID,                 ///< 8b ACL ID
+    XP_IACL_MAC_DA,             ///< 48b Mac DA
+    XP_IACL_MAC_SA,             ///< 48b Mac SA
+    XP_IACL_V4_ETHER_TYPE,      ///< 16b IPv4 Ethernet type
+    XP_IACL_CTAG_VID_DEI_PCP,   ///< 16b C-Tag Virtual ID + DEI + PCP       
+    XP_IACL_STAG_VID_DEI_PCP,   ///< 16b S-Tag Virtual ID + DEI + PCP      
+    XP_IACL_DIP_V4,             ///< 32b DIP
+    XP_IACL_SIP_V4,             ///< 32b SIP
+    XP_IACL_L4_DEST_PORT,       ///< 16b L4 Destination Port
+    XP_IACL_L4_SRC_PORT,        ///< 16b L4 Source Port
+    XP_IACL_IVIF,               ///< 16b Ingress Virtual Interface
+    XP_IACL_ICMP_CODE,          ///< 8b ICMP Code
+    XP_IACL_ICMP_MSG_TYPE,      ///< 8b ICMP Message Type
+    XP_IACL_PROTOCOL,           ///< 8b IP Protocol
+    XP_IACL_DSCP_ECN,           ///< 8b QoS DSCP and ECN Value
+    XP_IACL_BD,                 ///< 16b Bridge Domain ID
+    XP_IACL_TTL,                ///< 8b IP Time to Live
+    XP_IACL_PKTLEN,             ///< 8b IP Packet Length
+    XP_IACL_TCP_FLAGS,          ///< 8b TCP Flags
+    XP_IACL_VRF_ID,             ///< 16b Virtual Router Interface ID
+    XP_IACL_TAG_FRAGMENT_INFO,  ///< 8b IP Fragment Bits
+    XP_IACL_IPV4_MAX_FLDS
+} xpIaclV4KeyFlds;
+
+/**
+ * \brief IPv6 IACL Key Fields
+ */
+typedef enum
+{
+    XP_IACL_KEY_TYPE_V6,        ///< 8b    
+    XP_IACL_V6_ID,              ///< 8b ACL ID
+    XP_IACL_DIP_V6,             ///< 128b V6 DIP
+    XP_IACL_SIP_V6,             ///< 128b V6 SIP
+    XP_IACL_NXT_HDR,            ///< 8b Next Header
+    XP_IACL_L4_V6_DEST_PORT,    ///< 16b Destination Port 
+    XP_IACL_L4_V6_SRC_PORT,     ///< 16b Source Port
+    XP_IACL_ICMP_V6_CODE,       ///< 8b ICMP Code
+    XP_IACL_ICMP_V6_MSG_TYPE,   ///< 8b ICMP Message Type    
+    XP_IACL_HOP_LIMIT,          ///< 8b Hop Limit
+    XP_IACL_V6_PROTOCOL,        ///< 8b IPv6 Protocol
+    XP_IACL_V6_TCP_FLAGS,       ///< 8b TCP Flags
+    XP_IACL_V6_PKTLEN,          ///< 8b IP Packet Length
+    XP_IACL_TC_ROUTERMAC,       ///< 8b Router MAC & Traffic Class
+    XP_IACL_IPV6_MAX_FLDS
+}xpIaclV6KeyFlds;
+
+/**
+ * \brief MPLS IACL Key Fields
+ */
+typedef enum
+{
+    XP_IACL_KEY_TYPE_MPLS_V4,         ///< 8b
+    XP_IACL_MPLS_V4_ID,               ///< 8b ACL ID
+    XP_IACL_MPLS_V4_DIP,              ///< 32b DIP
+    XP_IACL_MPLS_V4_SIP,              ///< 32b SIP
+    XP_IACL_MPLS_V4_L4_DEST_PORT,     ///< 16b L4 Destination Port
+    XP_IACL_MPLS_V4_L4_SRC_PORT,      ///< 16b L4 Source Port
+    XP_IACL_MPLS_V4_IVIF,             ///< 8b IVIF
+    XP_IACL_MPLS_V4_ICMP_CODE,        ///< 8b ICMP Code
+    XP_IACL_MPLS_V4_ICMP_MSG_TYPE,    ///< 8b ICMP Message Type
+    XP_IACL_MPLS_V4_PROTOCOL,         ///< 8b IPv4 Protocol
+    XP_IACL_MPLS_V4_DSCP_ECN,         ///< 8b QoS DSCP and ECN
+    XP_IACL_MPLS_V4_BD,               ///< 16b Bridge Domain ID
+    XP_IACL_MPLS_V4_TCP_FLAGS,        ///< 8b  TCP Flags
+    XP_IACL_MPLS_V4_TTL,              ///< 8b Time to Live
+    XP_IACL_MPLS_V4_PKTLEN_LABEL_EXP, ///< 40b Packet Len & MPLS Label and EXP
+    XP_IACL_IPV4_MPLS_MAX_FLDS
+}xpIaclV4MplsKeyFlds;
+
+/**
+ * \brief IPv4 EACL Key Fields
+ */
+typedef enum
+{
+    XP_EACL_KEY_TYPE_V4,        ///< 8b
+    XP_EACL_MAC_DA,
+    XP_EACL_MAC_SA,
+    XP_EACL_DIP_V4,
+    XP_EACL_SIP_V4,
+    XP_EACL_L4_DEST_PORT,
+    XP_EACL_L4_SRC_PORT,
+    XP_EACL_V4_ETHER_TYPE,
+    XP_EACL_ICMP_MSG_TYPE,
+    XP_EACL_PROTOCOL,
+    XP_EACL_EGRESS_BD,
+    XP_EACL_EGRESS_VIF,
+    XP_EACL_VI,
+    XP_EACL_DSCP_PCP_EXP,
+    XP_EACL_TCP_FLAGS_RSNCODE,
+    XP_EACL_TC_DP,
+    XP_EACL_IPV4_MAX_FLDS,
+} xpEaclV4KeyFlds;
+
+/**
+ * \brief IPv6 EACL Key Fields
+ */
+typedef enum
+{
+    XP_EACL_KEY_TYPE_V6,
+    XP_EACL_DIP_V6,
+    XP_EACL_SIP_V6,
+    XP_EACL_L4_V6_DEST_PORT,
+    XP_EACL_L4_V6_SRC_PORT,
+    XP_EACL_V6_ETHER_TYPE,
+    XP_EACL_ICMP_V6_MSG_TYPE,
+    XP_EACL_V6_EGRESS_BD,
+    XP_EACL_V6_EGRESS_VIF,
+    XP_EACL_V6_RSNCODE_TC_DP,
+    XP_EACL_IPV6_MAX_FLDS,
+} xpEaclV6KeyFlds;
+
+typedef enum
+{
+    XP_IACL_V4_TYPE,
+    XP_IACL_V6_TYPE,
+    XP_IACL_V4_MPLS_TYPE,
+} xpIaclKeyType;
 
 /**
  * \brief This type (enum) defines the hashable fields        
