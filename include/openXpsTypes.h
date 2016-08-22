@@ -840,7 +840,7 @@ typedef void (*xpEventHandler)(xpDevice_t devId, uint8_t portNum);
 
 /**
  * \brief Function pointer to be registered for completion of packet transmission
- * \param [in]rSrcDev Device Id. Valid values are 0-63
+ * \param [in] intrSrcDev Device Id. Valid values are 0-63
  *
  * \return XP_STATUS
  */
@@ -848,7 +848,7 @@ typedef void (*xpPacketTxCompletion)(xpDevice_t intrSrcDev);
 
 /**
  * \brief Function pointer to indicate whether the packet is available
- * \param [in]rSrcDev Device Id. Valid values are 0-63
+ * \param [in] intrSrcDev Device Id. Valid values are 0-63
  * \param [out] const void * buf Buffer pointer where packet data is available.
  * \param [in] bufSize Size of packet available
  *
@@ -858,7 +858,7 @@ typedef void (*xpPacketAvailable)(xpDevice_t intrSrcDev, const void* buf, uint16
 
 /**
  * \brief Function pointer to indicate a DMA error
- * \param [in]rSrcDev Device Id. Valid values are 0-63
+ * \param [in] intrSrcDev Device Id. Valid values are 0-63
  *
  * \return XP_STATUS
  */
@@ -1060,7 +1060,7 @@ typedef xpPacketAvailable xpsPacketAvailable_f;
 
 /**
  * \brief Function pointer to indicate a DMA error
- * \param [in]rSrcDev
+ * \param [in] intrSrcDev
  *
  * \return XP_STATUS
  */

@@ -36,17 +36,13 @@
 typedef struct __attribute__((__packed__)) xp_reg_rw {
     u32 reg_address;  /* Address to read/write */
 
-    /* If count > 1, contiguous access of registers
-       starting from regAddress up-till count */
-    u16 count;
-
     /* 0->Write, 1->Read, Note: Direction will be
        same for all contiguous access */
     u8  direction;
 
     /* Size to be read/write in bytes,
        valid values are: 1,2,4 */
-    u8  size;
+    u32  size;
 
     /* Value(s) to be written/read */
     u64 value;
