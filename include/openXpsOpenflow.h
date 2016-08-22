@@ -162,7 +162,7 @@ XP_STATUS xpsOfApplyActions(xpsDevice_t devId, xpDatapath_t dpId, uint32_t inPor
  * \brief This method returns one table statistics.
  *
  * \param [in] devId  Physical device identifier
- * \param [in] pdId  Logical OpenFlow datapath identifier
+ * \param [in] dpId  Logical OpenFlow datapath identifier
  * \param [in] tableId  OpenFlow table identifier
  * \param [out] tableStats  OpenFlow table statistics
  *

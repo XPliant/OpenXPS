@@ -38,14 +38,14 @@ extern "C" {
 #endif
 
 /**
- * @brief Generic method for platform init.
+ * \brief Generic method for platform init.
  *
- * @param [in] target - Target name (svb, crb1, crb2, ...)
- * @param [in] initType - possible init modes (if mode is not available use INIT_UNKNOWN)
- * @param [in] diagMode
- * @param [in] targetPlatformPath - Directory containing platform file
+ * \param [in] target - Target name (svb, crb1, crb2, ...)
+ * \param [in] initType - possible init modes (if mode is not available use INIT_UNKNOWN)
+ * \param [in] diagMode
+ * \param [in] targetPlatformPath - Directory containing platform file
  *             The platform configuration file shall be placed under “targetPlatformPath/target/target.cfg”
- * @return [XP_STATUS] On success XP_NO_ERR
+ * \return [XP_STATUS] On success XP_NO_ERR
  */
 XP_STATUS xpPlatformInit(const char *target, xpInitType_t initType, bool diagMode, char *targetPlatformPath);
 

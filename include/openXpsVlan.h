@@ -243,6 +243,34 @@ XP_STATUS xpsVlanSetDefault (xpsDevice_t devId, xpsVlan_t vlanId);
  */
 XP_STATUS xpsVlanGetDefault (xpsDevice_t devId, xpsVlan_t *vlanId);
 
+/**
+ * \brief This method binds a vlan instance to corresponding
+ *        STG instance. All the port state for vlan is
+ *        controlled by its corresponding port state within the
+ *        STG instance.
+ *
+ * \param [in] devId
+ * \param [in] vlanId
+ * \param [in] stpId
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsVlanBindStp (xpsDevice_t devId, xpsVlan_t vlanId, xpsStp_t stpId);
+
+/**
+ * \brief This method unbinds a vlan instance from the corresponding
+ *        STG instance. All the port state for vlan is
+ *        controlled by its corresponding port state within the
+ *        STG instance.
+ *
+ * \param [in] devId
+ * \param [in] vlanId
+ * \param [in] stpId
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsVlanUnbindStp (xpsDevice_t devId, xpsVlan_t vlanId, xpsStp_t stpId);
+
 #ifdef __cplusplus
 }
 #endif

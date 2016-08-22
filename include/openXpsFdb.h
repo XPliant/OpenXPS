@@ -59,13 +59,13 @@ typedef struct
 /**
  * \brief Functional Pointer for FDB MAC Learning Handler registration
  *
- * \param [in] xpsDevice_t devId
- * \param [in] uint32_t ingressVif
- * \param [in] uint32_t reasonCode
- * \param [in] uint32_t bdId
- * \param [in] void* buf
- * \param [in] uint16_t bufSize
- * \param [in] void*
+ * \param [in] devId
+ * \param [in] ingressVif
+ * \param [in] reasonCode
+ * \param [in] bdId
+ * \param [in] buf
+ * \param [in] bufSize
+ * \param [in] userData
  *
  */
 typedef XP_STATUS (*xpsFdbLearnHandler)(xpsDevice_t, uint32_t, uint32_t,
@@ -203,7 +203,7 @@ XP_STATUS xpsFdbConfigureTableAging (xpsDevice_t devId, uint32_t enable);
  * \param [in]  startIndex
  * \param [in]  endIndex
  * \param [in] *logFile
- * \param [in] uint32_t detailFormat
+ * \param [in] detailFormat
  * \param [in] silentMode
  *
  * \return XP_STATUS

@@ -50,7 +50,7 @@ XP_STATUS xpsPortGetCPUPortIntfId(xpsDevice_t devId, xpsInterfaceId_t *intfId);
  *
  * \param [in] devId Device Id of device
  * \param [in] portNum Port
- * \param [out] xpsInterfaceId_t *intfId
+ * \param [out] intfId
  *
  * \return XP_STATUS
  */
@@ -84,8 +84,8 @@ XP_STATUS xpsPortGetField(xpsDevice_t devId, xpsInterfaceId_t portIfId,xpsPortCo
  * \brief Set configurations for a specific port 
  *
  * \param [in] devId Device Id of device
- * \param [in] portNum Port
- * \param [in] *pConfig Port Configuration Entry added to hardware
+ * \param [in] portIfId Port
+ * \param [in] pConfig Port Configuration Entry added to hardware
  *
  * \return XP_STATUS
  */
@@ -95,8 +95,8 @@ XP_STATUS xpsPortSetConfig(xpsDevice_t devId, xpsInterfaceId_t portIfId, xpsPort
  * \brief Get configurations for a specific port 
  *
  * \param [in] devId Device Id of device
- * \param [in] portNum Port
- * \param [in] *pConfig Port Configuration Entry read
+ * \param [in] portIfId Port
+ * \param [in] pConfig Port Configuration Entry read
  *
  * \return XP_STATUS
  */
@@ -108,8 +108,8 @@ XP_STATUS xpsPortGetConfig(xpsDevice_t devId, xpsInterfaceId_t portIfId, xpsPort
  *        Id
  *
  * \param [in] intfId
- * \param [out] * devId
- * \param [out] * portNum
+ * \param [out] devId
+ * \param [out] portNum
  *
  * \return int
  */
@@ -126,7 +126,6 @@ XP_STATUS xpsPortGetDevAndPortNumFromIntf(xpsInterfaceId_t intfId, xpsDevice_t *
  * \return int
  */
 XP_STATUS xpsPortGetPortControlIntfId(xpsDevice_t devId, xpsPort_t portNum, xpsInterfaceId_t *intfId);
-
 
 #ifdef __cplusplus
 }

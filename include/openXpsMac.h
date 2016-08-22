@@ -40,9 +40,9 @@ extern "C" {
  *
  * \param [in] devId device Id. Valid values are 0-63
  * \param [in] macNum       mac number. Valid values are 0 to 32.
- * \param [in] macConfigMode  mac mode of the port
+ * \param [in] macConfig  mac mode of the port
  * \param [in] speed speed of the 10/100/1000Mbps modes. used when these modes are used
- * \param [in] initSerDes set to 1 to reinit SerDes
+ * \param [in] initSerdes set to 1 to reinit SerDes
  * \param [in] prbsTestMode  prbsTest for the underlying serdes
  * \param [in] firmwareUpload upload the serdes firmware
  * \param [in] fecMode  Forward error correction mode. Available modes are FC and RS.
@@ -60,9 +60,9 @@ XP_STATUS xpsMacPortGroupInit(xpsDevice_t devId, uint8_t macNum, xpMacConfigMode
  *
  * \param [in] devId device Id. Valid values are 0-63
  * \param [in] macNum       mac number. Valid values are 0 to 32.
- * \param [in] macConfigMode  mac mode of the port
+ * \param [in] macConfig  mac mode of the port
  * \param [in] speed speed of the 10/100/1000Mbps modes. used when these modes are used
- * \param [in] initSerDes set to 1 to reinit SerDes
+ * \param [in] initSerdes set to 1 to reinit SerDes
  * \param [in] prbsTestMode  prbsTest for the underlying serdes
  * \param [in] firmwareUpload upload the serdes firmware
  * \param [in] fecMode  Forward error correction mode. Available modes are FC and RS.
@@ -135,8 +135,18 @@ XP_STATUS xpsMacGetMacNumForPortNum(xpsDevice_t devId, uint8_t portNum, uint8_t 
 XP_STATUS xpsMacPortSerdesTune(xpsDevice_t devId, xpsPort_t *portList, uint32_t numOfPort, xpSerdesDfeTuneMode_t tuneMode, uint8_t force);
 
 /**
+ * \brief Port Serdes Dfe Wait
+ *
+ * \param [in] devId device Id. Valid values are 0-63
+ * \param [in] portNum Port number. Valid values are 0 to 127.
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsMacPortSerdesDfeWait(xpsDevice_t devId, xpsPort_t portNum);
+
+/**
  * \brief Read port serder status and determine if it is ready for tuning
- * *
+ *
  * \param [in] devId device Id. Valid values are 0-63
  * \param [in] portNum Port number. Valid values are 0 to 127.
  *

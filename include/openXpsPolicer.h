@@ -70,7 +70,7 @@ XP_STATUS xpsPolicerEnablePortPolicing (xpsInterfaceId_t portIntfId, uint16_t en
 * \brief Add a policing entry for specific port
 *
 * \param [in] portIntfId Port Interface ID
-* \param [in] xpAcmClient_e client Advanced Counting Module (ACM) client enum
+* \param [in] client Advanced Counting Module (ACM) client enum
 * \param [in] *pEntry Policer Entry added to hardware
 *
 * \return XP_STATUS
