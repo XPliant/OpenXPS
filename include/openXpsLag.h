@@ -176,7 +176,7 @@ XP_STATUS xpsLagIsPortIntfMember(xpsInterfaceId_t portIntf, xpsInterfaceId_t lag
 
 /**
  * \brief Set the hashable fields for a specific device
- * 
+ * \deprecated use \ref xpsGlobalSwitchControlSetHashFields
  * \param [in] deviceId   Device Id of device.
  * \param [in] fields array of hashable fields 
  * \param [in] size array fields sizes 

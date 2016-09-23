@@ -37,8 +37,8 @@ extern "C" {
 /**
  * \brief Function pointer for cpu packet rx processing
  * \param [in] devId Device Id. Valid values are 0-63
- * \param [in] portNum Port number
- * \param [out] buf Buffer pointer where packet data is available.
+ * \param [in] portNum Port Number
+ * \param [out]  buf Buffer pointer where packet data is available.
  * \param [in] bufSize Size of the packet
  * \param [in] userData User data passed to Rx handler callback
  *
@@ -93,11 +93,11 @@ XP_STATUS xpsPacketDriverRxConfigModeGet(xpsDevice_t devId, xpRxConfigMode* cons
 */
 XP_STATUS xpsPacketDriverSend(xpsDevice_t devId, const struct xpPacketInfo* const pktInfo, txMode sendMode);
 
-/*
+/**
  * \brief Encapsulate the packet
  *
  * \param [in] devId device Id. Valid values are 0-63
- * \param [out] *packet Packet pointer
+ * \param [out] pktInfo Packet pointer
  * \param [in] srcVif source vif
  * \param [in] dstVif destination vif
  * \param [in] sendToEgress packet send egress or not
@@ -117,6 +117,22 @@ XP_STATUS xpsPacketDriverCreateHeader(xpsDevice_t devId, xpPacketInfo* pktInfo, 
  * \return [XP_STATUS] On success XP_NO_ERR
 */
 XP_STATUS xpsPacketDriverReceive(xpsDevice_t devId, struct xpPacketInfo **pktInfo, uint16_t *maxPkt);
+
+/**
+ * \brief Receive packet on default or previously set interface.
+ *
+ * In DMA mode receive maxPkt number of packets on the DMA interface. If requested
+ * number of packets are not available return the packets that are available.
+ * In Ethernet mode, this function will receive single buffer over Ethernet Interface.
+ *
+ * \param [in] devId device Id. Valid values are 0-63
+ * \param [in] queue queue number for which to receive the packet
+ * \param [in,out] pktInfo pointer to array of xpPacketInfo
+ * \param [in,out] maxPkt Maximum number of packets to be received. Will be updated to indicate number of packets actually received
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsPacketDriverReceiveForQueue(xpDevice_t devId, uint8_t queue, xpPacketInfo **pktInfo, uint16_t *maxPkt);
 
 /**
  * \brief Register the packet send/receive completion handler
@@ -158,14 +174,47 @@ XP_STATUS xpsPacketDriverFeatureRxHndlr(xpsCpuRxPktCbType_e type, xpsPacketRxHdl
  */
 XP_STATUS xpsPacketDriverFeatureRxHndlrDeRegister(xpsCpuRxPktCbType_e type);
 
+/**
+ * \brief
+ *
+ * \param [out] sizeOfTxHd
+ * \return [XP_STATUS] On success XP_NO_ERR
+ */
 XP_STATUS xpsPacketDriverGetTxHdrSize(size_t* sizeOfTxHd);
 
+/**
+ * \brief
+ *
+ * \param [in] devId
+ * \param [in] xpsIfId
+ * \param [in] msg
+ * \return [XP_STATUS] On success XP_NO_ERR
+ */
 XP_STATUS xpsNlTxHeaderMsgAssign(xpsDevice_t devId, xpsInterfaceId_t xpsIfId, uint8_t *msg);
 
+/**
+ * \brief
+ *
+ * \param [out] nlData
+ * \param [out] nlBuf
+ * \return [XP_STATUS] On success XP_NO_ERR
+ */
 XP_STATUS xpsNlSockGetBuf(uint8_t** nlData, uint8_t** nlBuf);
 
+/**
+ * \brief
+ *
+ * \param [in] nlBuf
+ * \return [XP_STATUS] On success XP_NO_ERR
+ */
 XP_STATUS xpsNlSockFreeBuf(uint8_t* nlBuf);
 
+/**
+ * \brief
+ *
+ * \param [in] nlBuf
+ * \return [XP_STATUS] On success XP_NO_ERR
+ */
 XP_STATUS xpsNlSockSendMsg(uint8_t* nlBuf);
 
 /**

@@ -93,22 +93,34 @@ typedef struct xpsL3RouteEntry_t
 }xpsL3RouteEntry_t;
 
 /**
- * \brief Add a Router MAC for a specific L3 Interface
+ * \brief This method Add Global Router Mac.
  *
  * \param [in] devId Device ID
- * \param [in] l3IntfId Layer 3 Interface ID
  * \param [in] mac Mac Address
+ *
  * \return XP_STATUS
-*/
-XP_STATUS xpsL3AddIntfIngressRouterMac(xpsDevice_t devId, xpsInterfaceId_t l3IntfId, macAddr_t mac);
+ */
+XP_STATUS xpsL3AddIngressRouterMac(xpsDevice_t devId, macAddr_t mac);
+
+/**
+ * \brief This method Add Global Router Mac for a given VLAN.
+ *
+ * \param [in] devId Device ID
+ * \param [in] vlan VLAN-ID
+ * \param [in] mac Mac Address
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsL3AddIngressRouterVlanMac(xpsDevice_t devId, xpsVlan_t vlan, macAddr_t mac);
 
 /**
  * \brief Set constant 40 MSB for a device Router Egress MAC.
  *
  * \param [in] devId Device ID
- * \param [in] macHi 40 MSB bits of the Egress Router MAC 
+ * \param [in] macHi 40 MSB bits of the Egress Router MAC
+ *
  * \return XP_STATUS
-*/
+ */
 XP_STATUS xpsL3SetEgressRouterMacMSbs(xpsDevice_t devId,  macAddrHigh_t macHi);
 
 /**
@@ -131,7 +143,7 @@ XP_STATUS xpsL3SetIntfEgressRouterMacLSB(xpsDevice_t devId, xpsInterfaceId_t l3I
  * \param [in] vrfId
  *
  * \return XP_STATUS
-*/
+ */
 XP_STATUS xpsL3SetIntfVrf(xpsDevice_t devId, xpsInterfaceId_t l3IntfId, uint32_t vrfId);
 
 /**
@@ -143,7 +155,7 @@ XP_STATUS xpsL3SetIntfVrf(xpsDevice_t devId, xpsInterfaceId_t l3IntfId, uint32_t
  * \param [in] enable
  *
  * \return XP_STATUS
-*/
+ */
 XP_STATUS xpsL3SetIntfIpv4UcRoutingEn(xpsDevice_t devId, xpsInterfaceId_t l3IntfId, uint32_t enable);
 
 /**
@@ -155,7 +167,7 @@ XP_STATUS xpsL3SetIntfIpv4UcRoutingEn(xpsDevice_t devId, xpsInterfaceId_t l3Intf
  * \param [in] enable
  *
  * \return XP_STATUS
-*/
+ */
 XP_STATUS xpsL3SetIntfIpv6UcRoutingEn(xpsDevice_t devId, xpsInterfaceId_t l3IntfId, uint32_t enable);
 
 
@@ -273,10 +285,10 @@ XP_STATUS xpsL3DestroyRouteNextHop(uint32_t nhEcmpSize, uint32_t nhId);
  * \brief Create L3 Interface over a specific VLAN.
  *
  * \param [in] vlanId VLAN-ID
- * \param [out] *l3IntfId Pointer to the allocated L3 Interface ID
+ * \param [out] l3IntfId Pointer to the allocated L3 Interface ID
  *
  * \return XP_STATUS
-*/
+ */
 XP_STATUS xpsL3CreateVlanIntf(xpsVlan_t vlanId, xpsInterfaceId_t *l3IntfId);
 
 /**
@@ -286,12 +298,12 @@ XP_STATUS xpsL3CreateVlanIntf(xpsVlan_t vlanId, xpsInterfaceId_t *l3IntfId);
  * \param [in] l3IntfId L3 Interface ID
  *
  * \return XP_STATUS
-*/
+ */
 XP_STATUS xpsL3DestroyVlanIntf(xpsVlan_t vlanId, xpsInterfaceId_t l3IntfId);
 
 /**
  * \brief Set hashable fields for a device
- *
+ * \deprecated use \ref xpsGlobalSwitchControlSetHashFields
  * \param [in] deviceId   Device id
  * \param [in] fields  array of fields
  * \param [in] size
@@ -326,9 +338,8 @@ XP_STATUS xpsL3SetRouterAclId(xpsDevice_t devId, xpsInterfaceId_t l3IfId, uint32
  * \param [out] *l3IntfId L3 Interface ID
  * 
  * \return XP_STATUS 
-*/
+ */
 XP_STATUS xpsL3CreateSubIntf(xpsInterfaceId_t *l3IntfId);
-
 
 /**
  * \brief This method destroys L3 sub interface.
@@ -336,9 +347,8 @@ XP_STATUS xpsL3CreateSubIntf(xpsInterfaceId_t *l3IntfId);
  * \param [in] l3IntfId L3 Interface ID
  * 
  * \return XP_STATUS 
-*/
+ */
 XP_STATUS xpsL3DestroySubIntf(xpsInterfaceId_t l3IntfId);
-
 
 /**
  * \brief This method binds L3 sub interface with the port interface
@@ -349,7 +359,7 @@ XP_STATUS xpsL3DestroySubIntf(xpsInterfaceId_t l3IntfId);
  * \param [in] encapId VLAN-ID
  * 
  * \return XP_STATUS 
-*/
+ */
 XP_STATUS xpsL3BindSubIntf (xpsInterfaceId_t portIntfId, xpsInterfaceId_t l3IntfId, xpsVlan_t encapId);
 
 /**
@@ -361,7 +371,7 @@ XP_STATUS xpsL3BindSubIntf (xpsInterfaceId_t portIntfId, xpsInterfaceId_t l3Intf
  * \param [in] encapId Vlan-ID
  * 
  * \return XP_STATUS 
-*/
+ */
 XP_STATUS xpsL3UnBindSubIntf (xpsInterfaceId_t portIntfId, xpsInterfaceId_t l3IntfId, xpsVlan_t encapId);
 
 /**
@@ -371,7 +381,7 @@ XP_STATUS xpsL3UnBindSubIntf (xpsInterfaceId_t portIntfId, xpsInterfaceId_t l3In
  * \param [in] l3IntfId L3 Interface ID
  * 
  * \return XP_STATUS 
-*/
+ */
 XP_STATUS xpsL3InitSubIntf (xpsDevice_t devId, xpsInterfaceId_t l3IntfId);
 
 /**
@@ -381,8 +391,67 @@ XP_STATUS xpsL3InitSubIntf (xpsDevice_t devId, xpsInterfaceId_t l3IntfId);
  * \param [in] l3IntfId L3 Interface ID
  * 
  * \return XP_STATUS 
-*/
+ */
 XP_STATUS xpsL3DeInitSubIntf (xpsDevice_t devId, xpsInterfaceId_t l3IntfId);
+
+/**
+ * \brief This method Creates L3 Interface Over Port.
+ *
+ * \param [in] tnnlIntfId
+ * \param [out] l3IntfId
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsL3CreatePortIntf(xpsInterfaceId_t *l3IntfId);
+
+/**
+ * \brief This method Removes L3 Interface Over Port.
+ *
+ * \param [out] l3IntfId
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsL3DestroyPortIntf(xpsInterfaceId_t l3IntfId);
+
+/**
+ * \brief This method Initializes L3 Interface Over Port.
+ *
+ * \param [in] portIntfId
+ * \param [in] l3IntfId
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsL3BindPortIntf(xpsInterfaceId_t portIntfId, xpsInterfaceId_t l3IntfId);
+
+/**
+ * \brief This method De-Initializes L3 Interface Over Port.
+ *
+ * \param [in] portIntfId
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsL3UnBindPortIntf(xpsInterfaceId_t portIntfId);
+
+/**
+ * \brief This method Initializes L3 Interface Over Port.
+ *
+ * \param [in] devId
+ * \param [in] l3IntfId
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsL3InitPortIntf(xpsDevice_t devId, xpsInterfaceId_t l3IntfId);
+
+/**
+ * \brief This method De-Initializes L3 Interface Over Port.
+ *
+ * \param [in] devId
+ * \param [in] l3IntfId
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsL3DeInitPortIntf(xpsDevice_t devId, xpsInterfaceId_t l3IntfId);
+
 
 #ifdef __cplusplus
 }
