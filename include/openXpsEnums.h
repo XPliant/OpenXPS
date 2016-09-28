@@ -956,10 +956,9 @@ typedef enum xpsInterfaceType_e
 } xpsInterfaceType_e;
 
 /**
- * \typedef xpQosMapPfl_t
  * \public
  * \brief This type (enum) defines the number of Qos Profiles
- *        supported in the QosMap Table
+ * supported in the QosMap Table
  */
 typedef enum
 {
@@ -978,11 +977,10 @@ typedef enum
  *IACL related enums
  */
 /**
-*\type xpAclType_e
-*\public
-*\brief This type (enum) defines types of ACL tables
-*
-**/
+ * \public
+ * \brief This type (enum) defines types of ACL tables
+ *
+ **/
 typedef enum
 {
     XP_ACL_IACL0,               ///< Port IACL
@@ -993,9 +991,8 @@ typedef enum
 } xpAclType_e;
 
 /**
- *\type xpIaclType_e
- *\public
- *\brief This type (enum) defines type of IACL Table.
+ * \public
+ * \brief This type (enum) defines type of IACL Table.
  *
  **/
 typedef enum
