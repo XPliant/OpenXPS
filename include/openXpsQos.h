@@ -544,6 +544,70 @@ XP_STATUS xpsQosShaperConfigurePortShaper(xpsDevice_t devId, xpPort_t devPort, u
  */
 XP_STATUS xpsQosShaperSetPortShaperEnable(xpsDevice_t devId, xpPort_t devPort, uint32_t enableShaper);
 
+/*
+ * XPS Queue counter section
+ */
+
+/**
+ * \brief API to read the Forward counter for a Queue associated
+ *        with a given port
+ *
+ * Wrap indicates if the counter has wrapped around since the
+ * last read
+ *
+ * This counter is a Clear-On-Read counter, which uses packet
+ * resolution
+ *
+ * \param [in] devId
+ * \param [in] port
+ * \param [in] queue
+ * \param [out] count
+ * \param [out] wrap
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsQosQcGetQueueFwdPacketCountForPort(xpsDevice_t devId, xpPort_t port, uint32_t queue, uint64_t *count, uint32_t *wrap);
+
+/**
+ * \brief API to read the Drop counter for a Queue associated
+ *        with a given port
+ *
+ * Wrap indicates if the counter has wrapped around since the
+ * last read
+ *
+ * This counter is a Clear-On-Read counter, which uses packet
+ * resolution
+ *
+ * \param [in] devId
+ * \param [in] port
+ * \param [in] queue
+ * \param [out] count
+ * \param [out] wrap
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsQosQcGetQueueDropPacketCountForPort(xpsDevice_t devId, xpPort_t port, uint32_t queue, uint64_t *count, uint32_t *wrap);
+
+/**
+ * \brief API to read the Forward Length counter for a Queue
+ *        associated with a given port
+ *
+ * Wrap indicates if the counter has wrapped around since the
+ * last read
+ *
+ * This counter is a Clear-On-Read counter, which uses byte
+ * resolution
+ *
+ * \param [in] devId
+ * \param [in] port
+ * \param [in] queue
+ * \param [out] count
+ * \param [out] wrap
+ *
+ * \return XP_STATUS
+ */
+XP_STATUS xpsQosQcGetQueueFwdByteCountForPort(xpsDevice_t devId, xpPort_t port, uint32_t queue, uint64_t *count, uint32_t *wrap);
+
 #ifdef __cplusplus
 }
 #endif

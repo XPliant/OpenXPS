@@ -33,27 +33,27 @@
 
 #include "openXpsEnums.h"
 
-#define XP_MAX_PACKET_SIZE                      10000
-#define XP_MAX_DEVICES                          (64)
+#define XP_MAX_PACKET_SIZE                      10*1024             ///<  Max Packet Size
+#define XP_MAX_DEVICES                          (64)                ///<  Max Supported Devices
 
-#define CPU_PORT       				176
+#define CPU_PORT                                176                 ///<  CPU Port Number
 
-#define XP_MAX_10G_PORTS                        128
-#define XP_MAX_TOTAL_PORTS                      XP_MAX_10G_PORTS
-#define XP_MAX_PTGS                             32
-#define XP_PORTS_PER_PORT_GROUP                 4
-#define XP_MAX_VLAN_NUM (4 * 1024)
-#define XP_MAC_ADDR_LEN                         6
+#define XP_MAX_10G_PORTS                        128                 ///<  Max 10G Ports
+#define XP_MAX_TOTAL_PORTS                      XP_MAX_10G_PORTS    ///<  Max Total Ports
+#define XP_MAX_PTGS                             32                  ///<  Max Ptgs
+#define XP_PORTS_PER_PORT_GROUP                 4                   ///<  Ports Per Port Group
+#define XP_MAX_VLAN_NUM                         (4 * 1024)          ///<  Max Supported Vlan Num
+#define XP_MAC_ADDR_LEN                         6                   ///<  Mac Address Len
 
 /**
  * \brief  Maximum number of OF tables
  */
-#define XP_OF_MAX_TABLE_PROFILES                24
+#define XP_OF_MAX_TABLE_PROFILES                24                  ///<  OpenFlow Max Table Profiles
 
-typedef uint32_t xpDevice_t;
-typedef uint16_t xpVlan_t;
-typedef uint32_t xpPort_t;
-typedef uint32_t xpVif_t;
+typedef uint32_t xpDevice_t;         ///< User defined type for device
+typedef uint16_t xpVlan_t;           ///< User defined type for vlan
+typedef uint32_t xpPort_t;           ///< User defined type for port
+typedef uint32_t xpVif_t;            //< User defined type for vif
 typedef uint8_t macAddr_t[6];        ///< User defined type for Mac Address
 typedef uint8_t ipv4Addr_t[4];       ///< User defined type for Ipv4 Address
 typedef uint8_t ipv6Addr_t[16];      ///< User defined type for Ipv6 Address
@@ -263,9 +263,10 @@ typedef enum XP_STATUS_E
     XP_ERR_DONGLE_I2C_XFER,         ///< 191 - I2C Dongle Transfer Error
     XP_ERR_MDIO_XFER,               ///< 192 - MDIO Transfer Error
     XP_ERR_MDIO_BUSY,               ///< 193 - MDIO Busy
-    XP_PORT_INITED,             ///< 194 - port is already inited
+    XP_PORT_INITED,                 ///< 194 - port is already inited
     XP_ERR_CALL_DERIVE_CLASS_OBJ,   ///< 195
     XP_ERR_INVALID_MIN_ETH_FRAME_SIZE,  ///< 196 - Invalid min ethernet frame size received by UMAC. It should be min 64 byte
+    XP_MORE_PKTS_AVAILABLE,         ///< 197 - In case of receiving packets from queue - notify user space if more packets are available
 
     XP_ERR_OF_BAD_MATCH_FIELD = 300,///< 300 - Unsupported field type in OpenFlow match
     XP_ERR_OF_BAD_MATCH_VALUE,      ///< 301 - Unsupported value in a match field
@@ -830,6 +831,17 @@ typedef struct xpIaclTableProfile
 }xpIaclTableProfile_t;
 
 /**
+ * \struct xpRecvPacketInfo_t
+ * \brief Information fot the last interrupt of packet received 
+ */
+typedef struct xpRecvPacketInfo_t
+{
+    uint8_t    queueNum;			//< In case of DMA - queueNumber
+    const void    *buf;				//< Pointer to the packet received
+	uint16_t    bufSize;			//< Length of the packet received
+} xpRecvPacketInfo_t;
+
+/**
  * \brief Function pointer to be registered for the port event handler
  * \param [in] devId Device ID
  * \param [in] portNum Port Number
@@ -849,12 +861,13 @@ typedef void (*xpPacketTxCompletion)(xpDevice_t intrSrcDev);
 /**
  * \brief Function pointer to indicate whether the packet is available
  * \param [in] intrSrcDev Device Id. Valid values are 0-63
- * \param [out] const void * buf Buffer pointer where packet data is available.
+ * \param [data] recvPacketInfo Information needed for user space, to handle in registered event handler.
+ * \param [out] buf Buffer pointer where packet data is available.
  * \param [in] bufSize Size of packet available
  *
  * \return XP_STATUS
  */
-typedef void (*xpPacketAvailable)(xpDevice_t intrSrcDev, const void* buf, uint16_t bufSize);
+typedef void (*xpPacketAvailable)(xpDevice_t intrSrcDev, xpRecvPacketInfo_t recvPacketInfo);
 
 /**
  * \brief Function pointer to indicate a DMA error

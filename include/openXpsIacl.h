@@ -45,8 +45,8 @@ typedef xpIaclKeyFieldId_t xpsIaclKeyFieldId_t;
  * \param [in] devId
  * \param [in] tableProfile Its structure with info about number of tcam dbs and keysize
  *                          for each type of ingress ACL tables(XP_IACL0, XP_IACL1 and 
- *                          XP_IACL2).Key Size possible values are(WIDTH_64,WIDTH_128,
- *                          WIDTH_192,WIDTH_384)
+ *                          XP_IACL2). Key Size possible values are(WIDTH_64, WIDTH_128,
+ *                          WIDTH_192, WIDTH_384).
  *
  * \return XP_STATUS
 */
